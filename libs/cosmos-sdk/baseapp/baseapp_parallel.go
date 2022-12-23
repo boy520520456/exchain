@@ -2,7 +2,9 @@ package baseapp
 
 import (
 	"bytes"
+	"fmt"
 	"runtime"
+	"sort"
 	"sync"
 
 	"github.com/okex/exchain/libs/cosmos-sdk/store/types"
@@ -163,6 +165,30 @@ func (app *BaseApp) calGroup() {
 			}
 		}
 	}
+}
+
+type gInfo struct {
+	id   int
+	size int
+}
+
+func mergeGroup(groupInfo []gInfo, newSize int, sum int) {
+	avgArgs := make([][]int, 0)
+
+	sort.Slice(groupInfo, func(i, j int) bool {
+		return groupInfo[i].size > groupInfo[j].size
+	})
+
+	fmt.Println("groupInfo", groupInfo)
+
+	for cnt := 0; cnt < newSize; cnt++ {
+		if cnt == newSize-1 {
+
+		}
+	}
+
+	avg := sum / newSize
+
 }
 
 // ParallelTxs run txs
