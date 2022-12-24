@@ -1,6 +1,7 @@
 package base
 
 import (
+	"fmt"
 	"math/big"
 
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -57,6 +58,7 @@ func (tx *Tx) GetChainConfig() (types.ChainConfig, bool) {
 func (tx *Tx) Transition(config types.ChainConfig) (result Result, err error) {
 	result.ExecResult, result.ResultData, err, result.InnerTxs, result.Erc20Contracts = tx.StateTransition.TransitionDb(tx.Ctx, config)
 
+	fmt.Println("Transition-1", err)
 	if err != nil {
 		return
 	}

@@ -131,6 +131,7 @@ func (k Keeper) CallEvm(ctx sdk.Context, to *common.Address, value *big.Int, dat
 	}
 
 	executionResult, resultData, err, _, _ := st.TransitionDb(ctx, config)
+	fmt.Println("Transition-2", err)
 	if !ctx.IsCheckTx() && !ctx.IsTraceTx() {
 		//TODO maybe add innertx
 		//k.addEVMInnerTx(ethTxHash.Hex(), innertxs, contracts)
