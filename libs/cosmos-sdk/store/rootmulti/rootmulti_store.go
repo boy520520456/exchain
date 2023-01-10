@@ -221,21 +221,25 @@ func (rs *Store) GetCommitVersion() (int64, error) {
 	var firstSp storeParams
 	var firstKey types.StoreKey
 	isFindIavlStoreParam := false
+	var versions []int64
+	var err error
 	//find a versions list in one iavl store
 	for firstKey, firstSp = range rs.storesParams {
 		if firstSp.typ == types.StoreTypeIAVL {
+			versions, err = rs.getCommitVersionFromParams(firstSp)
+			if err != nil {
+				return 0, err
+			}
+			// ignore empty tree
+			if len(versions) == 0{
+				continue
+			}
 			isFindIavlStoreParam = true
 			break
 		}
 	}
-	var versions []int64
-	var err error
-	if isFindIavlStoreParam {
-		versions, err = rs.getCommitVersionFromParams(firstSp)
-		if err != nil {
-			return 0, err
-		}
-	} else {
+
+	if !isFindIavlStoreParam {
 		version := GetLatestStoredMptHeight()
 		versions = []int64{int64(version)}
 	}
