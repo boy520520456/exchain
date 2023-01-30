@@ -598,6 +598,7 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 				api.filtersMu.RLock()
 				if f, found := api.filters[sub.ID()]; found {
 					// write to ws conn
+					result.Trace = result.Trace + "|writeConn" + tmtime.Now().String()
 					res := &SubscriptionNotification{
 						Jsonrpc: "2.0",
 						Method:  "eth_subscription",
@@ -607,7 +608,6 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 						},
 					}
 
-					result.Trace = result.Trace + "|writeConn" + tmtime.Now().String()
 					api.logger.Error("bt-event trace", "time", result.Trace)
 					err = f.conn.WriteJSON(res)
 					if err != nil {
