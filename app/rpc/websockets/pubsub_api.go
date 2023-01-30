@@ -608,7 +608,6 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 						},
 					}
 
-					api.logger.Error("bt-event trace", "time", result.Trace)
 					err = f.conn.WriteJSON(res)
 					if err != nil {
 						api.logger.Error("failed to write latest blocktime", "ID", sub.ID(), "error", err)
