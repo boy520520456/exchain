@@ -594,7 +594,7 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 					continue
 				}
 
-				result.Trace = result.Trace + "|" + tmtime.Now().String()
+				result.Trace = result.Trace + "|getEv:" + tmtime.Now().String()
 				api.filtersMu.RLock()
 				if f, found := api.filters[sub.ID()]; found {
 					// write to ws conn
@@ -607,7 +607,8 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 						},
 					}
 
-					result.Trace = result.Trace + "|" + tmtime.Now().String()
+					result.Trace = result.Trace + "|writeConn" + tmtime.Now().String()
+					api.logger.Error("bt-event trace", "time", result.Trace)
 					err = f.conn.WriteJSON(res)
 					if err != nil {
 						api.logger.Error("failed to write latest blocktime", "ID", sub.ID(), "error", err)
