@@ -756,5 +756,5 @@ func fireEvents(
 
 func (blockExec *BlockExecutor) FireBlockTimeEvents(height int64, txNum int, available bool) {
 	blockExec.eventBus.PublishEventLatestBlockTime(
-		types.EventDataBlockTime{Height: height, TimeNow: tmtime.Now().UnixMilli(), TxNum: txNum, Available: available})
+		types.EventDataBlockTime{Height: height, TimeNow: tmtime.Now().UnixMilli(), TxNum: txNum, Available: available, Trace: tmtime.Now().String()})
 }

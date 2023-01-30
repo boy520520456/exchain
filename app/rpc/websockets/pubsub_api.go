@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"fmt"
+	tmtime "github.com/okex/exchain/libs/tendermint/types/time"
 	"sync"
 
 	"github.com/okex/exchain/libs/tendermint/libs/log"
@@ -593,6 +594,7 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 					continue
 				}
 
+				result.Trace = result.Trace + "|" + tmtime.Now().String()
 				api.filtersMu.RLock()
 				if f, found := api.filters[sub.ID()]; found {
 					// write to ws conn
@@ -605,6 +607,7 @@ func (api *PubSubAPI) subscribeLatestBlockTime(conn *wsConn) (rpc.ID, error) {
 						},
 					}
 
+					result.Trace = result.Trace + "|" + tmtime.Now().String()
 					err = f.conn.WriteJSON(res)
 					if err != nil {
 						api.logger.Error("failed to write latest blocktime", "ID", sub.ID(), "error", err)

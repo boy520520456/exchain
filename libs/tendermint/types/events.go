@@ -124,6 +124,7 @@ type EventDataBlockTime struct {
 	TimeNow   int64
 	TxNum     int
 	Available bool
+	Trace     string
 }
 
 // NOTE: This goes into the replay WAL
