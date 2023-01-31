@@ -132,6 +132,9 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	if err != nil {
 		panic(err)
 	}
+
+	ff := sm.LoadState(stateStoreDB)
+	fmt.Println("ff", ff.LastBlockHeight)
 	for index := 15284741; index <= 17079648; index++ {
 		res, err := sm.LoadABCIResponses(stateStoreDB, int64(index))
 		if err != nil {
