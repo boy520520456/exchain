@@ -196,7 +196,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		for index, v := range res.Txs {
 			a, b, c, err := makeResult(v, int64(height))
 
-			if err != nil || b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+			if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
 				payLoad := []byte{}
 				if len(c) >= 4 {
 					payLoad = c[:4]
