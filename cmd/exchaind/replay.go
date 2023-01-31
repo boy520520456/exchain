@@ -211,8 +211,19 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 				Height: height,
 				Txs:    res.Txs,
 			}
-			if height%1000 == 0 {
+			if height%10000 == 0 {
 				fmt.Println("load from db", height)
+			}
+			if height%1000000 == 0 {
+				for true {
+					time.Sleep(5 * time.Second)
+					if len(resChan) < 100000 {
+						fmt.Println("continue load from db", height, len(resChan))
+					} else {
+						fmt.Println("need to wait", height, len(resChan))
+					}
+
+				}
 			}
 		}
 		close(resChan)
@@ -220,7 +231,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		fmt.Println("stop load from db")
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for info := range resChan {
@@ -234,11 +245,13 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 						fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
 					}
 				}
-				if info.Height%1000 == 0 {
+				if info.Height%10000 == 0 {
 					fmt.Println("cal sender", info.Height)
 				}
 			}
 			wg.Done()
+
+			fmt.Println("stop cal sender")
 		}()
 	}
 
