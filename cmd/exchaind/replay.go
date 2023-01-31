@@ -189,9 +189,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
-
-	fm
-
+	
 	for height := 15284741; height <= 17079648; height++ {
 		res := originBlockStore.LoadBlock(int64(height))
 
