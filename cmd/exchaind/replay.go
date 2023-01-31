@@ -201,7 +201,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		for height := 15284741; height < 17064139; height++ {
+		//for height := 15284741; height < 17064139; height++ {
+		for height := 16990335; height < 17064139; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
 			if res == nil {
 				fmt.Println("fuckckckckck", height)
@@ -231,13 +232,13 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		fmt.Println("stop load from db")
 	}()
 
-	for index := 0; index < 64; index++ {
+	for index := 0; index < 16; index++ {
 		wg.Add(1)
 		go func() {
 			for info := range resChan {
 				for index, v := range info.Txs {
 					a, b, c, err := makeResult(v, int64(info.Height))
-					if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+					if info.Height == 16990335 || b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
 						payLoad := []byte{}
 						if len(c) >= 4 {
 							payLoad = c[:4]
