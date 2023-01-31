@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,7 +16,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	cTypes "github.com/okex/exchain/libs/tendermint/rpc/core/types"
 	evmtypes "github.com/okex/exchain/x/evm/types"
 	"github.com/okex/exchain/x/evm/watcher"
 
@@ -171,10 +171,10 @@ func RawTxToEthTx(clientCtx *codec.Codec, bz []byte, height int64) (*evmtypes.Ms
 	}
 	return ethTx, nil
 }
-func makeResult(txRes *cTypes.ResultTx) (sender string, to common.Address, payLoad []byte) {
+func makeResult(tx types.Tx, height int64) (sender string, to common.Address, payLoad []byte) {
 	codecProxy, _ := okxCodeC.MakeCodecSuit(app.ModuleBasics)
 
-	ethTx, err := RawTxToEthTx(codecProxy.GetCdc(), txRes.Tx, txRes.Height)
+	ethTx, err := RawTxToEthTx(codecProxy.GetCdc(), tx, height)
 	if err != nil {
 		panic(err)
 	}
@@ -188,23 +188,19 @@ func makeResult(txRes *cTypes.ResultTx) (sender string, to common.Address, payLo
 
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
+	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
+	panicError(err)
+	originBlockStore := store.NewBlockStore(originBlockStoreDB)
 
-	codecProxy, registry := okxCodeC.MakeCodecSuit(app.ModuleBasics)
-
-	stateStoreDB, err := sdk.NewDB(stateDB, originDataDir+"/data")
-	checkerr(err)
-
-	ff := sm.LoadState(stateStoreDB)
-	fmt.Println("ff", ff.LastBlockHeight)
 	for height := 15284741; height <= 17079648; height++ {
-		res, err := sm.LoadABCIResponses(stateStoreDB, int64(height))
+		res := originBlockStore.LoadBlock(int64(height))
+
+		for index, v := range res.Txs {
+			a, b, c := makeResult(v, int64(height))
+			fmt.Printf("height", height, index, a, b, hex.EncodeToString(c))
+		}
 		checkerr(err)
 
-		for txIndex, txInfo := range res.DeliverTxs {
-
-			makeResult(rr)
-
-		}
 	}
 
 }
