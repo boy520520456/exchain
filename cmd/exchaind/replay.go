@@ -229,8 +229,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		//for height := 15284741; height < 17064139; height++ {
-		for height := 16990335; height < 17064139; height++ {
+		for height := 15284741; height < 17064139; height++ {
+			//for height := 16990335; height < 17064139; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
 			if res == nil {
 				fmt.Println("fuckckckckck", height)
