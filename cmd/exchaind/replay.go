@@ -199,7 +199,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	resChan := make(chan A, 10000000)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
 		for height := 15284741; height <= 15410000; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
@@ -220,25 +220,27 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		fmt.Println("stop load from db")
 	}()
 
-	go func() {
-		for info := range resChan {
-			for index, v := range info.Txs {
-				a, b, c, err := makeResult(v, int64(info.Height))
-				if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
-					payLoad := []byte{}
-					if len(c) >= 4 {
-						payLoad = c[:4]
+	for index := 0; index < 32; index++ {
+		wg.Add(1)
+		go func() {
+			for info := range resChan {
+				for index, v := range info.Txs {
+					a, b, c, err := makeResult(v, int64(info.Height))
+					if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+						payLoad := []byte{}
+						if len(c) >= 4 {
+							payLoad = c[:4]
+						}
+						fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
 					}
-					fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
+				}
+				if info.Height%1000 == 0 {
+					fmt.Println("cal sender", info.Height)
 				}
 			}
-			if info.Height%1000 == 0 {
-				fmt.Println("cal sender", info.Height)
-			}
-		}
-		wg.Done()
-		fmt.Println("stop cal sender ")
-	}()
+			wg.Done()
+		}()
+	}
 
 	wg.Wait()
 }
