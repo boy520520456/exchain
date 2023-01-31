@@ -190,6 +190,34 @@ type A struct {
 	Txs    types.Txs
 }
 
+type M struct {
+	mp map[string]bool
+	mu sync.Mutex
+
+	txCount int
+}
+
+func (m *M) AddSender(address string) {
+	m.mu.Lock()
+	m.mp[address] = true
+	m.mu.Unlock()
+}
+
+func (m *M) AddTxCount() {
+	m.mu.Lock()
+	m.txCount++
+	m.mu.Unlock()
+}
+func (m *M) Print() {
+	fmt.Println("fuck", len(m.mp), m.txCount)
+}
+
+var (
+	m = &M{
+		mp: make(map[common.Address]bool),
+	}
+)
+
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
@@ -220,6 +248,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 					time.Sleep(5 * time.Second)
 					if len(resChan) < 100000 {
 						fmt.Println("continue load from db", height, len(resChan))
+						break
 					} else {
 						fmt.Println("need to wait", height, len(resChan))
 					}
@@ -238,12 +267,16 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 			for info := range resChan {
 				for index, v := range info.Txs {
 					a, b, c, err := makeResult(v, int64(info.Height))
-					if info.Height == 16990335 || b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+					if info.Height == 16990335 || b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" {
+						m.AddTxCount()
 						payLoad := []byte{}
 						if len(c) >= 4 {
 							payLoad = c[:4]
 						}
-						fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
+						if hex.EncodeToString(payLoad) == "b1ae2ed1" {
+							fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
+							m.AddSender(a)
+						}
 					}
 				}
 				if info.Height%10000 == 0 {
@@ -251,12 +284,12 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 				}
 			}
 			wg.Done()
-
 			fmt.Println("stop cal sender")
 		}()
 	}
 
 	wg.Wait()
+	m.Print()
 }
 
 func registerReplayFlags(cmd *cobra.Command) *cobra.Command {
