@@ -203,6 +203,10 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	go func() {
 		for height := 15284741; height <= 17079648; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
+			if res == nil {
+				fmt.Println("fuckckckckck", height)
+			}
+
 			resChan <- A{
 				Height: height,
 				Txs:    res.Txs,
