@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/pprof"
+	"sync"
 	"time"
 
 	evmtypes "github.com/okex/exchain/x/evm/types"
@@ -184,33 +185,58 @@ func makeResult(tx types.Tx, height int64) (sender string, to common.Address, pa
 	return ethTx.GetFrom(), toAddr, ethTx.Data.Payload, nil
 }
 
+type A struct {
+	Height int
+	Txs    types.Txs
+}
+
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
 
-	for height := 15284741; height <= 17079648; height++ {
-		res := originBlockStore.LoadBlock(int64(height))
+	resChan := make(chan A, 10000000)
 
-		for index, v := range res.Txs {
-			a, b, c, err := makeResult(v, int64(height))
-
-			if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
-				payLoad := []byte{}
-				if len(c) >= 4 {
-					payLoad = c[:4]
-				}
-				fmt.Println("height", height, index, a, b, hex.EncodeToString(payLoad), err)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		for height := 15284741; height <= 17079648; height++ {
+			res := originBlockStore.LoadBlock(int64(height))
+			resChan <- A{
+				Height: height,
+				Txs:    res.Txs,
+			}
+			if height%1000 == 0 {
+				fmt.Println("load from db", height)
 			}
 		}
-		checkerr(err)
-		if height%1000 == 0 {
-			fmt.Println("doing", height)
+		close(resChan)
+		wg.Done()
+		fmt.Println("stop load from db")
+	}()
+
+	go func() {
+		for info := range resChan {
+			for index, v := range info.Txs {
+				a, b, c, err := makeResult(v, int64(info.Height))
+				if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+					payLoad := []byte{}
+					if len(c) >= 4 {
+						payLoad = c[:4]
+					}
+					fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
+				}
+			}
+			if info.Height%1000 == 0 {
+				fmt.Println("cal sender", info.Height)
+			}
 		}
+		wg.Done()
+		fmt.Println("stop cal sender ")
+	}()
 
-	}
-
+	wg.Wait()
 }
 
 func registerReplayFlags(cmd *cobra.Command) *cobra.Command {
