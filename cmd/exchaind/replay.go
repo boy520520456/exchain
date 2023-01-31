@@ -261,20 +261,16 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		fmt.Println("stop load from db")
 	}()
 
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 32; index++ {
 		wg.Add(1)
 		go func() {
 			for info := range resChan {
-				for index, v := range info.Txs {
-					a, b, c, err := makeResult(v, int64(info.Height))
+				for _, v := range info.Txs {
+					a, b, c, _ := makeResult(v, int64(info.Height))
 					if info.Height == 16990335 || b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" {
 						m.AddTxCount()
-						payLoad := []byte{}
-						if len(c) >= 4 {
-							payLoad = c[:4]
-						}
-						if hex.EncodeToString(payLoad) == "b1ae2ed1" {
-							fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
+						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" {
+							//fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
 							m.AddSender(a)
 						}
 					}
