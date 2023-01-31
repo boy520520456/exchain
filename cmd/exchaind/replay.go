@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
@@ -194,8 +195,9 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 		for index, v := range res.Txs {
 			a, b, c, err := makeResult(v, int64(height))
-			if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
-				fmt.Println("height", height, index, a, b, len(c), err)
+		
+			if err != nil || b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+				fmt.Println("height", height, index, a, b, hex.EncodeToString(c[:4]), err)
 			}
 		}
 		checkerr(err)
