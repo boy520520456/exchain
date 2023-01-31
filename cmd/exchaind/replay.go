@@ -22,8 +22,6 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 	okxCodeC "github.com/okex/exchain/app/codec"
 	"github.com/okex/exchain/app/config"
-	"github.com/okex/exchain/app/utils/appstatus"
-	"github.com/okex/exchain/app/utils/sanity"
 	"github.com/okex/exchain/libs/cosmos-sdk/baseapp"
 	"github.com/okex/exchain/libs/cosmos-sdk/client/lcd"
 	"github.com/okex/exchain/libs/cosmos-sdk/codec"
@@ -70,15 +68,15 @@ func replayCmd(ctx *server.Context, registerAppFlagFn func(cmd *cobra.Command),
 		Short: "Replay blocks from local db",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// set external package flags
-			log.Println("--------- replay preRun ---------")
-			err := sanity.CheckStart()
-			if err != nil {
-				fmt.Println(err)
-				return err
-			}
-			iavl.SetEnableFastStorage(appstatus.IsFastStorageStrategy())
-			server.SetExternalPackageValue(cmd)
-			types.InitSignatureCache()
+			//log.Println("--------- replay preRun ---------")
+			//err := sanity.CheckStart()
+			//if err != nil {
+			//	fmt.Println(err)
+			//	return err
+			//}
+			//iavl.SetEnableFastStorage(appstatus.IsFastStorageStrategy())
+			//server.SetExternalPackageValue(cmd)
+			//types.InitSignatureCache()
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -191,6 +189,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
+
+	fm
 
 	for height := 15284741; height <= 17079648; height++ {
 		res := originBlockStore.LoadBlock(int64(height))
