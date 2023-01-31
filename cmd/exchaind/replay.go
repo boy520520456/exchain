@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
@@ -169,19 +168,19 @@ func RawTxToEthTx(clientCtx *codec.Codec, bz []byte, height int64) (*evmtypes.Ms
 	}
 	return ethTx, nil
 }
-func makeResult(tx types.Tx, height int64) (sender string, to common.Address, payLoad []byte) {
+func makeResult(tx types.Tx, height int64) (sender string, to common.Address, payLoad []byte, err error) {
 	codecProxy, _ := okxCodeC.MakeCodecSuit(app.ModuleBasics)
 
 	ethTx, err := RawTxToEthTx(codecProxy.GetCdc(), tx, height)
 	if err != nil {
-		panic(err)
+		return "", common.Address{}, nil, err
 	}
 
 	toAddr := common.Address{}
 	if ethTx.To() != nil {
 		toAddr = *ethTx.To()
 	}
-	return ethTx.GetFrom(), toAddr, ethTx.Data.Payload
+	return ethTx.GetFrom(), toAddr, ethTx.Data.Payload, nil
 }
 
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
@@ -189,13 +188,13 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
-	
+
 	for height := 15284741; height <= 17079648; height++ {
 		res := originBlockStore.LoadBlock(int64(height))
 
 		for index, v := range res.Txs {
-			a, b, c := makeResult(v, int64(height))
-			fmt.Printf("height", height, index, a, b, hex.EncodeToString(c))
+			a, b, c, err := makeResult(v, int64(height))
+			fmt.Printf("height", height, index, a, b, len(c), err)
 		}
 		checkerr(err)
 
