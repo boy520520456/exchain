@@ -214,7 +214,7 @@ func (m *M) Print() {
 
 var (
 	m = &M{
-		mp: make(map[common.Address]bool),
+		mp: make(map[string]bool),
 	}
 )
 
