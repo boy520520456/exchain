@@ -16,7 +16,6 @@ import (
 
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/okex/exchain/app/config"
-	okexchain "github.com/okex/exchain/app/types"
 	"github.com/okex/exchain/app/utils/appstatus"
 	"github.com/okex/exchain/app/utils/sanity"
 	"github.com/okex/exchain/libs/cosmos-sdk/baseapp"
@@ -126,56 +125,21 @@ func replayCmd(ctx *server.Context, registerAppFlagFn func(cmd *cobra.Command),
 
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
-	config.RegisterDynamicConfig(ctx.Logger.With("module", "config"))
-
-	var proxyApp proxy.AppConns
-	if tmNode != nil {
-		proxyApp = tmNode.ProxyApp()
-	} else {
-		var err error
-		proxyApp, err = createProxyApp(ctx)
-		panicError(err)
-	}
-
-	res, err := proxyApp.Query().InfoSync(proxy.RequestInfo)
-	panicError(err)
-	currentBlockHeight := res.LastBlockHeight
-	currentAppHash := res.LastBlockAppHash
-	log.Println("current block height", "height", currentBlockHeight)
-	log.Println("current app hash", "appHash", fmt.Sprintf("%X", currentAppHash))
-
 	rootDir := ctx.Config.RootDir
 	dataDir := filepath.Join(rootDir, "data")
-	var stateStoreDB dbm.DB
-	if tmNode != nil {
-		stateStoreDB = tmNode.StateDB()
-	} else {
-		stateStoreDB, err = sdk.NewDB(stateDB, dataDir)
-	}
-	panicError(err)
 
-	genesisDocProvider := node.DefaultGenesisDocProviderFunc(ctx.Config)
-	state, genDoc, err := node.LoadStateFromDBOrGenesisDocProvider(stateStoreDB, genesisDocProvider)
-	panicError(err)
-
-	// If startBlockHeight == 0 it means that we are at genesis and hence should initChain.
-	if currentBlockHeight == types.GetStartBlockHeight() {
-		err := initChain(state, stateStoreDB, genDoc, proxyApp)
-		panicError(err)
-		state = sm.LoadState(stateStoreDB)
-	}
-	//cache chain epoch
-	err = okexchain.SetChainId(genDoc.ChainID)
+	stateStoreDB, err := sdk.NewDB(stateDB, dataDir)
 	if err != nil {
-		panicError(err)
+		panic(err)
+	}
+	for index := 15284741; index <= 17079648; index++ {
+		res, err := sm.LoadABCIResponses(stateStoreDB, int64(index))
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("ress", index, len(res.DeliverTxs))
 	}
 
-	var blockStore *store.BlockStore
-	if tmNode != nil {
-		blockStore = tmNode.BlockStore()
-	}
-	// replay
-	doReplay(ctx, state, stateStoreDB, blockStore, proxyApp, originDataDir, currentAppHash, currentBlockHeight)
 }
 
 func registerReplayFlags(cmd *cobra.Command) *cobra.Command {
