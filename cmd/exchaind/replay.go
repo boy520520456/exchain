@@ -194,9 +194,14 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 		for index, v := range res.Txs {
 			a, b, c, err := makeResult(v, int64(height))
-			fmt.Println("height", height, index, a, b, len(c), err)
+			if b.String() == "0x6f0a55cd633cc70beb0ba7874f3b010c002ef59f" {
+				fmt.Println("height", height, index, a, b, len(c), err)
+			}
 		}
 		checkerr(err)
+		if height%1000 == 0 {
+			fmt.Println("doing", height)
+		}
 
 	}
 
