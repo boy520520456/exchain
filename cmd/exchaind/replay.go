@@ -194,7 +194,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 		for index, v := range res.Txs {
 			a, b, c, err := makeResult(v, int64(height))
-			fmt.Printf("height", height, index, a, b, len(c), err)
+			fmt.Println("height", height, index, a, b, len(c), err)
 		}
 		checkerr(err)
 
