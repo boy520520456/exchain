@@ -126,6 +126,7 @@ func replayCmd(ctx *server.Context, registerAppFlagFn func(cmd *cobra.Command),
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	rootDir := ctx.Config.RootDir
+	fmt.Println("fffff", rootDir)
 	dataDir := filepath.Join(rootDir, "data")
 
 	stateStoreDB, err := sdk.NewDB(stateDB, dataDir)
