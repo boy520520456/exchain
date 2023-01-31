@@ -1,7 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/okex/exchain/app"
+	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -11,10 +15,12 @@ import (
 	"runtime/pprof"
 	"time"
 
+	cTypes "github.com/okex/exchain/libs/tendermint/rpc/core/types"
 	evmtypes "github.com/okex/exchain/x/evm/types"
 	"github.com/okex/exchain/x/evm/watcher"
 
 	"github.com/gogo/protobuf/jsonpb"
+	okxCodeC "github.com/okex/exchain/app/codec"
 	"github.com/okex/exchain/app/config"
 	"github.com/okex/exchain/app/utils/appstatus"
 	"github.com/okex/exchain/app/utils/sanity"
@@ -123,22 +129,82 @@ func replayCmd(ctx *server.Context, registerAppFlagFn func(cmd *cobra.Command),
 	return cmd
 }
 
-// replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
-func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
+func checkerr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
-	stateStoreDB, err := sdk.NewDB(stateDB, "/data/scf/")
+func getSenderFromEvent(events []abci.Event) (string, error) {
+	for _, ev := range events {
+		if ev.Type == sdk.EventTypeMessage {
+			fromAddr := ""
+			realEvmTx := false
+			for _, attr := range ev.Attributes {
+				if string(attr.Key) == sdk.AttributeKeySender {
+					fromAddr = string(attr.Value)
+				}
+				if string(attr.Key) == sdk.AttributeKeyModule &&
+					string(attr.Value) == evmtypes.AttributeValueCategory { // to avoid the evm to cm tx enter
+					realEvmTx = true
+				}
+				// find the sender
+				if fromAddr != "" && realEvmTx {
+					return fromAddr, nil
+				}
+			}
+		}
+	}
+	return "", errors.New("No sender in Event")
+}
+
+// RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
+func RawTxToEthTx(clientCtx *codec.Codec, bz []byte, height int64) (*evmtypes.MsgEthereumTx, error) {
+	tx, err := evmtypes.TxDecoder(clientCtx)(bz, height)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	ethTx, ok := tx.(*evmtypes.MsgEthereumTx)
+	if !ok {
+		return nil, fmt.Errorf("invalid transaction type %T, expected %T", tx, evmtypes.MsgEthereumTx{})
+	}
+	return ethTx, nil
+}
+func makeResult(txRes *cTypes.ResultTx) (sender string, to common.Address, payLoad []byte) {
+	codecProxy, _ := okxCodeC.MakeCodecSuit(app.ModuleBasics)
+
+	ethTx, err := RawTxToEthTx(codecProxy.GetCdc(), txRes.Tx, txRes.Height)
 	if err != nil {
 		panic(err)
 	}
 
+	toAddr := common.Address{}
+	if ethTx.To() != nil {
+		toAddr = *ethTx.To()
+	}
+	return ethTx.GetFrom(), toAddr, ethTx.Data.Payload
+}
+
+// replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
+func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
+
+	codecProxy, registry := okxCodeC.MakeCodecSuit(app.ModuleBasics)
+
+	stateStoreDB, err := sdk.NewDB(stateDB, originDataDir+"/data")
+	checkerr(err)
+
 	ff := sm.LoadState(stateStoreDB)
 	fmt.Println("ff", ff.LastBlockHeight)
-	for index := 15284741; index <= 17079648; index++ {
-		res, err := sm.LoadABCIResponses(stateStoreDB, int64(index))
-		if err != nil {
-			panic(err)
+	for height := 15284741; height <= 17079648; height++ {
+		res, err := sm.LoadABCIResponses(stateStoreDB, int64(height))
+		checkerr(err)
+
+		for txIndex, txInfo := range res.DeliverTxs {
+
+			makeResult(rr)
+
 		}
-		fmt.Printf("ress", index, len(res.DeliverTxs))
 	}
 
 }
