@@ -7,7 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/okex/exchain/app"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
-	"io/ioutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -211,13 +210,16 @@ func (m *M) AddTxCount() {
 }
 func (m *M) Print() {
 	fmt.Println("fuck", len(m.mp), m.txCount)
-	fileName := "./sender.txt"
 
-	for v, _ := range m.mp {
-		err := ioutil.WriteFile(fileName, []byte(v), 0666)
+	filename := "./sender.txt"
+	fp, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeAppend|os.ModePerm) // 读写方式打开
+	checkerr(err)
+	defer fp.Close()
+
+	for sender, _ := range m.mp {
+		_, err := fp.WriteString(sender + "\n")
 		checkerr(err)
 	}
-
 	fmt.Println("write success")
 }
 
