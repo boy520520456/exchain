@@ -195,11 +195,13 @@ type M struct {
 	mu sync.Mutex
 
 	txCount int
+	tCount  int
 }
 
 func (m *M) AddSender(address string) {
 	m.mu.Lock()
 	m.mp[address] = true
+	m.tCount++
 	m.mu.Unlock()
 }
 
@@ -208,8 +210,8 @@ func (m *M) AddTxCount() {
 	m.txCount++
 	m.mu.Unlock()
 }
+
 func (m *M) Print() {
-	fmt.Println("fuck", len(m.mp), m.txCount)
 
 	filename := "./sender.txt"
 	fp, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeAppend|os.ModePerm) // 读写方式打开
@@ -220,7 +222,7 @@ func (m *M) Print() {
 		_, err := fp.WriteString(sender + "\n")
 		checkerr(err)
 	}
-	fmt.Println("write success")
+	fmt.Println("fuck", len(m.mp), m.txCount, m.tCount)
 }
 
 var (
@@ -241,8 +243,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		//for height := 15284741; height < 17064139; height++ {
-		for height := 15284741; height < 15484741; height++ {
+		for height := 15284741; height < 17064139; height++ {
+			//for height := 15284741; height < 15484741; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
 
 			resChan <- A{
