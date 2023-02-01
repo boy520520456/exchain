@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/okex/exchain/app"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
+	"io/ioutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -210,12 +211,21 @@ func (m *M) AddTxCount() {
 }
 func (m *M) Print() {
 	fmt.Println("fuck", len(m.mp), m.txCount)
+	fileName := "./sender.txt"
+
+	for v, _ := range m.mp {
+		err := ioutil.WriteFile(fileName, []byte(v), 0666)
+		checkerr(err)
+	}
+
+	fmt.Println("write success")
 }
 
 var (
 	m = &M{
 		mp: make(map[string]bool),
 	}
+	maxResInChan = 500000
 )
 
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
@@ -224,17 +234,14 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
 
-	resChan := make(chan A, 10000000)
+	resChan := make(chan A, maxResInChan)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		for height := 15284741; height < 17064139; height++ {
-			//for height := 16990335; height < 17064139; height++ {
+		//for height := 15284741; height < 17064139; height++ {
+		for height := 15284741; height < 15884741; height++ {
 			res := originBlockStore.LoadBlock(int64(height))
-			if res == nil {
-				fmt.Println("fuckckckckck", height)
-			}
 
 			resChan <- A{
 				Height: height,
@@ -243,10 +250,10 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 			if height%10000 == 0 {
 				fmt.Println("load from db", height)
 			}
-			if height%1000000 == 0 {
+			if height%maxResInChan == 0 {
 				for true {
-					time.Sleep(5 * time.Second)
-					if len(resChan) < 100000 {
+					time.Sleep(2 * time.Second)
+					if len(resChan) < maxResInChan/10 {
 						fmt.Println("continue load from db", height, len(resChan))
 						break
 					} else {
@@ -270,7 +277,6 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 					if info.Height == 16990335 || b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" {
 						m.AddTxCount()
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" {
-							//fmt.Println("height", info.Height, index, a, b, hex.EncodeToString(payLoad), err)
 							m.AddSender(a)
 						}
 					}
