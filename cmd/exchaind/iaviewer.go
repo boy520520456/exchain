@@ -681,7 +681,7 @@ func printTree(ctx *iaviewerContext, tree *iavl.MutableTree) {
 	var keyPrefix []byte
 	var err error
 	var total = tree.Size()
-	if keyPrefixStr := "0x051cC4D981e897A3D2E7785093A648c0a75fAd0453"; keyPrefixStr != "" {
+	if keyPrefixStr := "051cC4D981e897A3D2E7785093A648c0a75fAd0453"; keyPrefixStr != "" {
 		keyPrefix, err = hex.DecodeString(keyPrefixStr)
 		if err != nil {
 			fmt.Printf("keyprefix must be in hex format: %s\n", err)
