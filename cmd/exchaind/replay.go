@@ -292,10 +292,10 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	sb = append(sb, realKey.Bytes()...)
 	realKeyy := realKey.Bytes()
 
-	realKeyy, err = hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd045300000153A6B762C73013632DF8FEBF3305E11DBE1DDF17AFA2114631DF0F2B37")
-	if err != nil {
-		panic(err)
-	}
+	//realKeyy, err = hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd045300000153A6B762C73013632DF8FEBF3305E11DBE1DDF17AFA2114631DF0F2B37")
+	//if err != nil {
+	//	panic(err)
+	//}
 	_, value := tree.GetWithIndex(realKeyy)
 	fmt.Println("value", hex.EncodeToString(realKeyy), value)
 	return
