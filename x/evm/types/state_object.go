@@ -2,9 +2,11 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/big"
+	"reflect"
 	"sync"
 
 	"github.com/VictoriaMetrics/fastcache"
@@ -492,6 +494,7 @@ func (so *stateObject) GetCommittedState(db ethstate.Database, key ethcmn.Hash) 
 	if !ok {
 		store := so.stateDB.dbAdapter.NewStore(ctx.KVStore(so.stateDB.storeKey), AddressStoragePrefix(so.Address()))
 		rawValue = store.Get(prefixKey.Bytes())
+		fmt.Println("GetCommittedState", reflect.TypeOf(store), so.address.String(), "key", key.String(), "prefixkKey", prefixKey.String(), "rawValue", hex.EncodeToString(rawValue))
 		ctx.Cache().UpdateStorage(so.address, prefixKey, rawValue, false)
 	}
 
