@@ -402,7 +402,7 @@ func iaviewerReadData(ctx *iaviewerContext) error {
 	}
 	fmt.Printf("module: %s, prefix key: %s\n\n", ctx.Module, ctx.Prefix)
 
-	if key := viper.GetString(flagKey); key != "" {
+	if key := "051cC4D981e897A3D2E7785093A648c0a75fAd04539b76768e393fb62ae91a2a2be6874789d6f7c81a505314e6f4995b0eee39982f"; key != "" {
 		keyByte, err := hex.DecodeString(key)
 		if err != nil {
 			return fmt.Errorf("error decoding key: %w", err)
@@ -681,7 +681,7 @@ func printTree(ctx *iaviewerContext, tree *iavl.MutableTree) {
 	var keyPrefix []byte
 	var err error
 	var total = tree.Size()
-	if keyPrefixStr := "051cC4D981e897A3D2E7785093A648c0a75fAd0453"; keyPrefixStr != "" {
+	if keyPrefixStr := "059a59ae3Fc0948717F94242fc170ac1d5dB3f0D5D"; keyPrefixStr != "" {
 		keyPrefix, err = hex.DecodeString(keyPrefixStr)
 		if err != nil {
 			fmt.Printf("keyprefix must be in hex format: %s\n", err)
