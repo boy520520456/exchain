@@ -260,7 +260,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
 
-	db, err := base.OpenDB(originDataDir, dbm.BackendType("rocksdb"))
+	db, err := base.OpenDB(originDataDir+"/application.db", dbm.BackendType("rocksdb"))
 	if err != nil {
 		panic(err)
 	}
