@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/okex/exchain/app/rpc/namespaces/eth/simulation"
 	"io"
 	"math/big"
-	"reflect"
 	"sync"
 
 	"github.com/VictoriaMetrics/fastcache"
@@ -495,10 +493,7 @@ func (so *stateObject) GetCommittedState(db ethstate.Database, key ethcmn.Hash) 
 	if !ok {
 		store := so.stateDB.dbAdapter.NewStore(ctx.KVStore(so.stateDB.storeKey), AddressStoragePrefix(so.Address()))
 		rawValue = store.Get(prefixKey.Bytes())
-		if reflect.TypeOf(store) == reflect.TypeOf(new(simulation.StateStore)) {
-			fmt.Println("fuck---", so.address.String(), key.String(), prefixKey.String(), "rawValue", hex.EncodeToString(rawValue))
-		}
-
+		fmt.Println("fuck---", so.address.String(), key.String(), prefixKey.String(), "rawValue", hex.EncodeToString(rawValue))
 		ctx.Cache().UpdateStorage(so.address, prefixKey, rawValue, false)
 	}
 
