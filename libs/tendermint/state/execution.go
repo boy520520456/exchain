@@ -215,7 +215,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 	if flag < 5 {
 		flag++
 	} else {
-		time.Sleep(30 * time.Second)
+		//time.Sleep(30 * time.Second)
 	}
 	trc := trace.NewTracer(trace.ApplyBlock)
 	trc.EnableSummary()
