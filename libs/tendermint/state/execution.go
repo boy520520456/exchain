@@ -202,11 +202,20 @@ func (blockExec *BlockExecutor) ValidateBlock(state State, block *types.Block) e
 // It's the only function that needs to be called
 // from outside this package to process and commit an entire block.
 // It takes a blockID to avoid recomputing the parts hash.
+var (
+	flag = 0
+)
+
 func (blockExec *BlockExecutor) ApplyBlock(
 	state State, blockID types.BlockID, block *types.Block) (State, int64, error) {
 	if ApplyBlockPprofTime >= 0 {
 		f, t := PprofStart()
 		defer PprofEnd(int(block.Height), f, t)
+	}
+	if flag < 10 {
+		flag++
+	} else {
+		return state, 0, fmt.Errorf("sb")
 	}
 	trc := trace.NewTracer(trace.ApplyBlock)
 	trc.EnableSummary()

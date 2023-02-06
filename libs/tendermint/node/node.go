@@ -1395,7 +1395,6 @@ func createAndStartPrivValidatorSocketClient(
 // UTF-8 sequence. First part is equivalent to strings.SplitN with a count of
 // -1.  also filter out empty strings, only return non-empty strings.
 func splitAndTrimEmpty(s, sep, cutset string) []string {
-	return nil
 	if s == "" {
 		return []string{}
 	}
