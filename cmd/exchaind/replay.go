@@ -272,6 +272,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	}
 
 	stroageKey := makeKey(common.HexToAddress("0xea2c6253d0bd22deba38329e65c28a0e16ae4a90"))
+	fmt.Println("storakegekkkkkkkkk", stroageKey.String())
 	realKey := evmtypes.GetStorageByAddressKey(common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes(), stroageKey.Bytes())
 
 	sb := make([]byte, 0)

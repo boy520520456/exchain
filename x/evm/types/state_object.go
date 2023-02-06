@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/big"
@@ -492,6 +493,7 @@ func (so *stateObject) GetCommittedState(db ethstate.Database, key ethcmn.Hash) 
 	if !ok {
 		store := so.stateDB.dbAdapter.NewStore(ctx.KVStore(so.stateDB.storeKey), AddressStoragePrefix(so.Address()))
 		rawValue = store.Get(prefixKey.Bytes())
+		fmt.Println("fuck---", so.address.String(), key.String(), prefixKey.String(), "rawValue", hex.EncodeToString(rawValue))
 		ctx.Cache().UpdateStorage(so.address, prefixKey, rawValue, false)
 	}
 
