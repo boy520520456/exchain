@@ -212,10 +212,10 @@ func (blockExec *BlockExecutor) ApplyBlock(
 		f, t := PprofStart()
 		defer PprofEnd(int(block.Height), f, t)
 	}
-	if flag < 10 {
+	if flag < 5 {
 		flag++
 	} else {
-		return state, 0, fmt.Errorf("sb")
+		time.Sleep(30 * time.Second)
 	}
 	trc := trace.NewTracer(trace.ApplyBlock)
 	trc.EnableSummary()
