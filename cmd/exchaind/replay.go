@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/okex/exchain/app"
+	"github.com/okex/exchain/cmd/exchaind/base"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
 	"log"
 	"net/http"
@@ -232,11 +234,47 @@ var (
 	maxResInChan = 500000
 )
 
+func makeKey(addr common.Address) common.Hash {
+	ans := make([]byte, 0)
+
+	for index := 0; index < 12; index++ {
+		ans = append(ans, []byte{0}...)
+	}
+	ans = append(ans, addr.Bytes()...)
+	for index := 0; index < 31; index++ {
+		ans = append(ans, []byte{0}...)
+	}
+	ans = append(ans, []byte{9}...)
+
+	kh := crypto.NewKeccakState()
+	kh.Reset()
+	kh.Write(ans)
+	h := common.Hash{}
+	kh.Read(h[:])
+	return h
+}
+
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
+
+	db, err := base.OpenDB(originDataDir, dbm.BackendType("rocksdb"))
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	tree, err := ReadTree(db, 0, []byte(fmt.Sprintf("s/k:%s/", "evm")), DefaultCacheSize)
+	if err != nil {
+		panic(err)
+	}
+
+	stroageKey := makeKey(common.HexToAddress("0xea2c6253d0bd22deba38329e65c28a0e16ae4a90"))
+	_, value := tree.GetWithIndex(stroageKey.Bytes())
+	fmt.Println("value", value)
+	return
 
 	resChan := make(chan A, maxResInChan)
 
