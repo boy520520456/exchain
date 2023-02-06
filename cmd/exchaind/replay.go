@@ -271,12 +271,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		panic(err)
 	}
 
-	//stroageKey := makeKey(common.HexToAddress("0xea2c6253d0bd22deba38329e65c28a0e16ae4a90"))
-	sbs, err := hex.DecodeString("9b76768e393fb62ae91a2a2be6874789d6f7c81a505314e6f4995b0eee39982f")
-	if err != nil {
-		panic(err)
-	}
-	stroageKey := common.BytesToHash(sbs)
+	stroageKey := makeKey(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 
 	fmt.Println("storakegekkkkkkkkk", stroageKey.String())
 
