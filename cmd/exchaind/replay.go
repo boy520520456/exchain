@@ -272,7 +272,14 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	}
 
 	stroageKey := makeKey(common.HexToAddress("0xea2c6253d0bd22deba38329e65c28a0e16ae4a90"))
-	_, value := tree.GetWithIndex(stroageKey.Bytes())
+	realKey := evmtypes.GetStorageByAddressKey(common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes(), stroageKey.Bytes())
+
+	sb := make([]byte, 0)
+	sb = append(sb, []byte{5}...)
+	sb = append(sb, common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes()...)
+	sb = append(sb, realKey.Bytes()...)
+
+	_, value := tree.GetWithIndex(realKey.Bytes())
 	fmt.Println("value", value)
 	return
 
