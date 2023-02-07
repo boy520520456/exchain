@@ -347,7 +347,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 				for _, v := range info.Txs {
 					txHash := common.BytesToHash(v.Hash(int64(info.Height)))
 					a, b, c, _ := makeResult(v, int64(info.Height))
-					fmt.Println("a", a, b.String(), hex.EncodeToString(c))
+					//fmt.Println("a", a, b.String(), hex.EncodeToString(c))
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" {
 							tmSender.AddCoinToolSender(a, txHash)
