@@ -324,7 +324,7 @@ func (m *Manager) RangeBlock() {
 					}
 					data, err := evmtypes.DecodeResultData(v.Data)
 					if err != nil {
-						fmt.Println("fuckkkk", err)
+						//fmt.Println("fuckkkk", err)
 						continue
 					}
 					checkerr(err)
