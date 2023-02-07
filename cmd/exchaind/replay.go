@@ -187,6 +187,20 @@ func makeResult(tx types.Tx, height int64) (sender string, to common.Address, pa
 	}
 	return ethTx.GetFrom(), toAddr, ethTx.Data.Payload, nil
 }
+func makeResultWithoutSender(tx types.Tx, height int64) (sender common.Address, to common.Address, payLoad []byte, err error) {
+	codecProxy, _ := okxCodeC.MakeCodecSuit(app.ModuleBasics)
+
+	ethTx, err := RawTxToEthTx(codecProxy.GetCdc(), tx, height)
+	if err != nil {
+		return common.Address{}, common.Address{}, nil, err
+	}
+
+	toAddr := common.Address{}
+	if ethTx.To() != nil {
+		toAddr = *ethTx.To()
+	}
+	return common.Address{}, toAddr, ethTx.Data.Payload, nil
+}
 
 type A struct {
 	Height int
@@ -254,9 +268,9 @@ func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
 	m.useMapHash[addr] = txHash
 	m.mu.Unlock()
 }
-func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
+func (m *M) AddCoinToolSender(address common.Address, txHash common.Hash) {
 	m.mu.Lock()
-	m.coinToolAddrs[common.HexToAddress(address)] = true
+	m.coinToolAddrs[address] = true
 	m.contractType[txHash] = 1
 	m.mu.Unlock()
 }
@@ -423,10 +437,10 @@ func (m *Manager) GetCoinToolsSenderList() {
 				res := m.blockStore.LoadBlock(height)
 				for _, v := range res.Txs {
 					txHash := common.BytesToHash(v.Hash(height))
-					a, b, c, _ := makeResult(v, int64(height))
+					sender, b, c, _ := makeResultWithoutSender(v, height)
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" { //claimBatch
-							tmSender.AddCoinToolSender(a, txHash)
+							tmSender.AddCoinToolSender(sender, txHash)
 						}
 					}
 					if b.String() == "0x97FAaB98f1A9E5C803C43a6293759FcC7eD000b9" { // robotXen
