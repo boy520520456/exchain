@@ -194,14 +194,20 @@ type A struct {
 }
 
 type M struct {
-	coinToolAddrs map[string]bool
+	useList map[common.Address]common.Hash
 
+	coinToolAddrs  map[string]bool
 	robotXenMethod map[string]common.Hash
 
 	contractType map[common.Hash]int
 	mu           sync.Mutex
 }
 
+func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
+	m.mu.Lock()
+	m.useList[addr] = txHash
+	m.mu.Unlock()
+}
 func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 	m.mu.Lock()
 	m.coinToolAddrs[address] = true
@@ -220,22 +226,9 @@ func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
 	m.mu.Unlock()
 }
 
-func (m *M) Print() {
-
-	filename := "./sender.txt"
-	fp, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_RDWR, os.ModeAppend|os.ModePerm) // 读写方式打开
-	checkerr(err)
-	defer fp.Close()
-
-	for sender, _ := range m.coinToolAddrs {
-		_, err := fp.WriteString(sender + "\n")
-		checkerr(err)
-	}
-	fmt.Println("fuck", len(m.coinToolAddrs))
-}
-
 var (
 	tmSender = &M{
+		useList:        make(map[common.Address]common.Hash, 0),
 		coinToolAddrs:  make(map[string]bool, 0),
 		robotXenMethod: make(map[string]common.Hash, 0),
 		contractType:   make(map[common.Hash]int, 0),
@@ -265,12 +258,14 @@ func makeKey(addr common.Address) common.Hash {
 }
 
 type Manager struct {
+	start      int
+	end        int
 	tree       *iavl.MutableTree
 	blockStore *store.BlockStore
 	stateStore dbm.DB
 }
 
-func NewManager(originDataDir string) *Manager {
+func NewManager(originDataDir string, start, end int) *Manager {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
@@ -289,6 +284,8 @@ func NewManager(originDataDir string) *Manager {
 	stateStoreDB, err := sdk.NewDB(stateDB, originDataDir)
 
 	return &Manager{
+		start:      start,
+		end:        end,
 		tree:       tree,
 		blockStore: originBlockStore,
 		stateStore: stateStoreDB,
@@ -309,19 +306,50 @@ func (m *Manager) GetMaturityTs(addr common.Address) *big.Int {
 	return new(big.Int).SetBytes(value)
 }
 
+type mintInfo struct {
+	resp *sm.ABCIResponses
+}
+
 func (m *Manager) RangeBlock() {
-	//for height := 15414660; height < 17200533; height++ {
-	for height := 17172002; height <= 17172002; height++ {
-		resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
-		checkerr(err)
-		for _, v := range resp.DeliverTxs {
-			data, err := evmtypes.DecodeResultData(v.Data)
-			fmt.Println("tx--", data.TxHash.String(), len(data.Logs))
+
+	res := make(chan mintInfo, 500000)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		for height := m.start; height <= m.end; height++ {
+			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
 			checkerr(err)
-			for _, logs := range data.Logs {
-				fmt.Println("vvv", len(logs.Topics), logs.Topics[0])
+			res <- mintInfo{resp: resp}
+			if height%20000 == 0 {
+				fmt.Println("load abci", height)
 			}
 		}
+		wg.Done()
+		close(res)
+	}()
+	for index := 0; index < 16; index++ {
+		wg.Add(1)
+		go func() {
+			for resp := range res {
+				for _, v := range resp.resp.DeliverTxs {
+					data, err := evmtypes.DecodeResultData(v.Data)
+					checkerr(err)
+					for _, logs := range data.Logs {
+						if len(logs.Topics) == 4 && logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
+							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
+						}
+					}
+				}
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	for k, v := range tmSender.useList {
+		fmt.Println("useList", k, v)
 	}
 }
 
@@ -332,7 +360,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		for height := 15414660; height < 17200533; height++ {
+		for height := m.start; height < m.end; height++ {
 			//for height := 17172002; height <= 17172002; height++ {
 			res := m.blockStore.LoadBlock(int64(height))
 
@@ -342,18 +370,6 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 			}
 			if height%20000 == 0 {
 				fmt.Println("load from db", height)
-			}
-			if height%maxResInChan == 0 {
-				for true {
-					time.Sleep(2 * time.Second)
-					if len(resChan) < maxResInChan/10 {
-						fmt.Println("continue load from db", height, len(resChan))
-						break
-					} else {
-						fmt.Println("need to wait", height, len(resChan))
-					}
-
-				}
 			}
 		}
 		close(resChan)
@@ -405,16 +421,26 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir)
+	//manager := NewManager(originDataDir, 15414660, 17200533)
+	manager := NewManager(originDataDir, 17172002, 17272002)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
 	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
 
-	manager.RangeBlock()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		manager.RangeBlock()
+		wg.Done()
+	}()
 
-	sender := manager.GetCoinToolsSenderList()
-	fmt.Println("len(sender)", len(sender))
+	go func() {
+		sender := manager.GetCoinToolsSenderList()
+		fmt.Println("len(sender)", len(sender))
+		wg.Done()
+	}()
+	wg.Wait()
 
 }
 
