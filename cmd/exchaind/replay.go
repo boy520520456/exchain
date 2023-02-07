@@ -311,8 +311,8 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		//for height := 15414660; height < 17200533; height++ {
-		for height := 17172002; height <= 17172002; height++ {
+		for height := 15414660; height < 17200533; height++ {
+			//for height := 17172002; height <= 17172002; height++ {
 			res := m.blockStore.LoadBlock(int64(height))
 
 			resChan <- A{
@@ -353,7 +353,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 							tmSender.AddCoinToolSender(a, txHash)
 						}
 					}
-					if b.String() == "0x97faab98f1a9e5c803c43a6293759fcc7ed000b9" { // robotXen
+					if b.String() == "0x97FAaB98f1A9E5C803C43a6293759FcC7eD000b9" { // robotXen
 						if len(c) >= 4 {
 							tmSender.AddRobotXenFunc(c[:4], txHash)
 						}
