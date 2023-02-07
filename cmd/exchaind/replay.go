@@ -245,7 +245,7 @@ func makeKey(addr common.Address) common.Hash {
 	for index := 0; index < 31; index++ {
 		ans = append(ans, []byte{0}...)
 	}
-	ans = append(ans, []byte{10}...)
+	ans = append(ans, []byte{9}...)
 	fmt.Println("ans", hex.EncodeToString(ans))
 
 	kh := crypto.NewKeccakState()
@@ -273,16 +273,14 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		panic(err)
 	}
 
-	stroageKey := makeKey(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
+	userAddr := makeKey(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e")) // 9
+	maturityTs := new(big.Int).Add(new(big.Int).SetBytes(userAddr.Bytes()), new(big.Int).SetInt64(2))
 
-	fmt.Println("storakegekkkkkkkkk", stroageKey.String())
-
-	realKey := evmtypes.GetStorageByAddressKey(common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes(), stroageKey.Bytes())
-
-	fmt.Println("storakegekkkkkkkkk", stroageKey.String(), "realKey", hex.EncodeToString(realKey.Bytes()))
 	sb := make([]byte, 0)
 
 	preInStore, err := hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd0453")
+	realKey := evmtypes.GetStorageByAddressKey(common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes(), maturityTs.Bytes())
+	fmt.Println("storakegekkkkkkkkk", maturityTs.String(), "realKey", hex.EncodeToString(realKey.Bytes()))
 	if err != nil {
 		panic(err)
 	}
