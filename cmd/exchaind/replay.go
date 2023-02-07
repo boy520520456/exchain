@@ -515,8 +515,8 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	//manager := NewManager(originDataDir, 15414660, 17200533)
-	manager := NewManager(originDataDir, 15414660, 15650000)
+	manager := NewManager(originDataDir, 15414660, 17200533)
+	//manager := NewManager(originDataDir, 15414660, 15650000)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
