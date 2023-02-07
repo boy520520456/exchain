@@ -385,7 +385,7 @@ func (m *Manager) RangeBlock() {
 		close(res)
 	}()
 
-	for index := 0; index < 64; index++ {
+	for index := 0; index < 32; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
@@ -436,7 +436,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 		close(resChan)
 	}()
 
-	for index := 0; index < 64; index++ {
+	for index := 0; index < 32; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
