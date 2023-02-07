@@ -330,6 +330,9 @@ func (m *Manager) RangeBlock() {
 			for resp := range res {
 				for ii, v := range resp.resp.DeliverTxs {
 
+					if len(v.Data) == 0 {
+						continue
+					}
 					data, err := evmtypes.DecodeResultData(v.Data)
 					if err != nil {
 						fmt.Println("fuckkkk", hex.EncodeToString(v.Data), len(v.Data), resp.height, ii)
