@@ -313,7 +313,7 @@ func (m *Manager) RangeBlock() {
 		wg.Done()
 	}()
 
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 32; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
