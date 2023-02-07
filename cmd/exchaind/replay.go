@@ -314,6 +314,7 @@ func (m *Manager) RangeBlock() {
 
 	middle := (m.start + m.end) / 2
 
+	stopChan := make(chan struct{}, 0)
 	go func() {
 		for height := m.start; height <= middle; height++ {
 			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
@@ -324,7 +325,7 @@ func (m *Manager) RangeBlock() {
 			}
 		}
 		wg.Done()
-		close(res)
+		stopChan <- struct{}{}
 	}()
 	go func() {
 		for height := middle + 1; height <= m.end; height++ {
@@ -336,8 +337,14 @@ func (m *Manager) RangeBlock() {
 			}
 		}
 		wg.Done()
+		stopChan <- struct{}{}
+	}()
+	go func() {
+		<-stopChan
+		<-stopChan
 		close(res)
 	}()
+
 	for index := 0; index < 8; index++ {
 		wg.Add(1)
 		go func() {
@@ -375,7 +382,46 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 	resChan := make(chan A, 50000)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
+	stopChan := make(chan struct{}, 0)
+	middle := (m.start + m.end) / 2
+	go func() {
+		for height := m.start; height <= middle; height++ {
+			//for height := 17172002; height <= 17172002; height++ {
+			res := m.blockStore.LoadBlock(int64(height))
+
+			resChan <- A{
+				Height: height,
+				Txs:    res.Txs,
+			}
+			if height%20000 == 0 {
+				fmt.Println("load from db txs", height)
+			}
+		}
+		wg.Done()
+		stopChan <- struct{}{}
+	}()
+	go func() {
+		for height := middle + 1; height <= middle; height++ {
+			//for height := 17172002; height <= 17172002; height++ {
+			res := m.blockStore.LoadBlock(int64(height))
+
+			resChan <- A{
+				Height: height,
+				Txs:    res.Txs,
+			}
+			if height%20000 == 0 {
+				fmt.Println("load from db txs", height)
+			}
+		}
+		wg.Done()
+		stopChan <- struct{}{}
+	}()
+	go func() {
+		<-stopChan
+		<-stopChan
+		close(resChan)
+	}()
 	go func() {
 		for height := m.start; height <= m.end; height++ {
 			//for height := 17172002; height <= 17172002; height++ {
