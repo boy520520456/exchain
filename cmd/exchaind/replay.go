@@ -312,7 +312,7 @@ func (m *Manager) RangeBlock() {
 		}
 	}()
 
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 4; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
@@ -359,7 +359,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		wg.Done()
 	}()
 
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 32; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
@@ -376,7 +376,6 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "a0712d68" { //mint
 							tmSender.AddRobotXenFunc(txHash)
 						}
-
 					}
 				}
 				if height%20000 == 0 {
