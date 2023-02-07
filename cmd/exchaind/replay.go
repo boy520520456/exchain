@@ -194,8 +194,8 @@ type A struct {
 }
 
 type M struct {
-	useList map[common.Address]common.Hash
-
+	useMapHash    map[common.Address][]common.Hash
+	useMapCnt     map[common.Address]int
 	coinToolAddrs map[string]bool
 
 	contractType map[common.Hash]int
@@ -204,7 +204,12 @@ type M struct {
 
 func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
 	m.mu.Lock()
-	m.useList[addr] = txHash
+	m.useMapCnt[addr]++
+
+	if _, ok := m.useMapHash[addr]; !ok {
+		m.useMapHash[addr] = make([]common.Hash, 0)
+	}
+	m.useMapHash[addr] = append(m.useMapHash[addr], txHash)
 	m.mu.Unlock()
 }
 func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
@@ -223,7 +228,8 @@ func (m *M) AddRobotXenFunc(txHash common.Hash) {
 
 var (
 	tmSender = &M{
-		useList:       make(map[common.Address]common.Hash, 0),
+		useMapCnt:     make(map[common.Address]int, 0),
+		useMapHash:    make(map[common.Address][]common.Hash, 0),
 		coinToolAddrs: make(map[string]bool, 0),
 		contractType:  make(map[common.Hash]int, 0),
 		mu:            sync.Mutex{},
@@ -345,7 +351,11 @@ func (m *Manager) RangeBlock() {
 	}
 	wg.Wait()
 
-	fmt.Println("UserList", len(tmSender.useList))
+	cnt := 0
+	for _, v := range tmSender.useMapCnt {
+		cnt += v
+	}
+	fmt.Println("allCnt", cnt)
 }
 
 func (m *Manager) GetCoinToolsSenderList() []common.Address {
@@ -401,7 +411,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 15414660, 17190000)
+	manager := NewManager(originDataDir, 15414660, 17200533)
 	//manager := NewManager(originDataDir, 17172002, 17192002)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
