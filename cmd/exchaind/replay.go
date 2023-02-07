@@ -291,7 +291,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	//if err != nil {
 	//	panic(err)
 	//}
-	_, value := tree.GetWithIndex(realKeyy)
+	_, value := tree.GetWithIndex(sb)
 	fmt.Println("value", hex.EncodeToString(realKeyy), value)
 	return
 
