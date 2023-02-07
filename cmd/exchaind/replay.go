@@ -311,6 +311,7 @@ func (m *Manager) RangeBlock() {
 			res <- int64(height)
 		}
 		wg.Done()
+		close(res)
 	}()
 
 	for index := 0; index < 32; index++ {
@@ -358,6 +359,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 			resChan <- int64(height)
 		}
 		wg.Done()
+		close(resChan)
 	}()
 
 	for index := 0; index < 64; index++ {
