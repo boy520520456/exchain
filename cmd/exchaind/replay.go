@@ -334,8 +334,11 @@ func (m *Manager) RangeBlock() {
 		wg.Add(1)
 		go func() {
 			for resp := range res {
-				for _, v := range resp.resp.DeliverTxs {
+				for ii, v := range resp.resp.DeliverTxs {
 					data, err := evmtypes.DecodeResultData(v.Data)
+					if err != nil {
+						fmt.Println("fuckkkk", hex.EncodeToString(v.Data), len(v.Data), resp.height, ii)
+					}
 					checkerr(err)
 					for _, logs := range data.Logs {
 						if len(logs.Topics) == 4 && logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
