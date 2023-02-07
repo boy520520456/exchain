@@ -194,23 +194,21 @@ type A struct {
 }
 
 type M struct {
-	mp map[string]bool
-	mu sync.Mutex
+	coinToolAddrs map[string]bool
 
-	txCount int
-	tCount  int
+	robotXenMethod map[string]common.Hash
+	mu             sync.Mutex
 }
 
-func (m *M) AddSender(address string) {
+func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 	m.mu.Lock()
-	m.mp[address] = true
-	m.tCount++
+	m.coinToolAddrs[address] = true
 	m.mu.Unlock()
 }
 
-func (m *M) AddTxCount() {
+func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
 	m.mu.Lock()
-	m.txCount++
+	m.robotXenMethod[hex.EncodeToString(method)] = txHash
 	m.mu.Unlock()
 }
 
@@ -221,16 +219,17 @@ func (m *M) Print() {
 	checkerr(err)
 	defer fp.Close()
 
-	for sender, _ := range m.mp {
+	for sender, _ := range m.coinToolAddrs {
 		_, err := fp.WriteString(sender + "\n")
 		checkerr(err)
 	}
-	fmt.Println("fuck", len(m.mp), m.txCount, m.tCount)
+	fmt.Println("fuck", len(m.coinToolAddrs))
 }
 
 var (
-	m = &M{
-		mp: make(map[string]bool),
+	tmSender = &M{
+		coinToolAddrs: make(map[string]bool, 0),
+		mu:            sync.Mutex{},
 	}
 	maxResInChan = 500000
 )
@@ -256,8 +255,12 @@ func makeKey(addr common.Address) common.Hash {
 	return h
 }
 
-// replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
-func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
+type Manager struct {
+	tree       *iavl.MutableTree
+	blockStore *store.BlockStore
+}
+
+func NewManager(originDataDir string) *Manager {
 	originBlockStoreDB, err := sdk.NewDB(blockStoreDB, originDataDir)
 	panicError(err)
 	originBlockStore := store.NewBlockStore(originBlockStoreDB)
@@ -266,49 +269,48 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
 	tree, err := ReadTree(db, 0, []byte(fmt.Sprintf("s/k:%s/", "evm")), DefaultCacheSize)
 	if err != nil {
 		panic(err)
 	}
 
-	userAddr := makeKey(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e")) // 9
+	return &Manager{
+		tree:       tree,
+		blockStore: originBlockStore,
+	}
+}
+
+func (m *Manager) GetMaturityTs(addr common.Address) *big.Int {
+	userAddr := makeKey(addr) // 9
 	maturityTs := new(big.Int).Add(new(big.Int).SetBytes(userAddr.Bytes()), new(big.Int).SetInt64(2))
 
-	sb := make([]byte, 0)
-
-	preInStore, err := hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd0453")
 	realKey := evmtypes.GetStorageByAddressKey(common.HexToAddress("0x1cC4D981e897A3D2E7785093A648c0a75fAd0453").Bytes(), maturityTs.Bytes())
-	fmt.Println("storakegekkkkkkkkk", maturityTs.String(), "realKey", hex.EncodeToString(realKey.Bytes()))
-	if err != nil {
-		panic(err)
-	}
-	sb = append(sb, preInStore...)
-	sb = append(sb, realKey.Bytes()...)
 
-	//realKeyy, err = hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd045300000153A6B762C73013632DF8FEBF3305E11DBE1DDF17AFA2114631DF0F2B37")
-	//if err != nil {
-	//	panic(err)
-	//}
-	_, value := tree.GetWithIndex(sb)
-	fmt.Println("value", hex.EncodeToString(sb), hex.EncodeToString(value), new(big.Int).SetBytes(value).String())
-	return
+	keyInDB := make([]byte, 0)
+	preInStore, _ := hex.DecodeString("051cC4D981e897A3D2E7785093A648c0a75fAd0453")
+	keyInDB = append(keyInDB, preInStore...)
+	keyInDB = append(keyInDB, realKey.Bytes()...)
+	_, value := m.tree.GetWithIndex(keyInDB)
+	return new(big.Int).SetBytes(value)
+}
 
-	resChan := make(chan A, maxResInChan)
+func (m *Manager) GetCoinToolsSenderList() []common.Address {
+
+	resChan := make(chan A, 50000)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		for height := 15284741; height < 17064139; height++ {
+		for height := 15414660; height < 17200533; height++ {
 			//for height := 15284741; height < 15484741; height++ {
-			res := originBlockStore.LoadBlock(int64(height))
+			res := m.blockStore.LoadBlock(int64(height))
 
 			resChan <- A{
 				Height: height,
 				Txs:    res.Txs,
 			}
-			if height%10000 == 0 {
+			if height%20000 == 0 {
 				fmt.Println("load from db", height)
 			}
 			if height%maxResInChan == 0 {
@@ -334,12 +336,18 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		go func() {
 			for info := range resChan {
 				for _, v := range info.Txs {
+					txHash := common.BytesToHash(v.Hash(int64(info.Height)))
 					a, b, c, _ := makeResult(v, int64(info.Height))
-					if info.Height == 16990335 || b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" {
-						m.AddTxCount()
+					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" {
-							m.AddSender(a)
+							tmSender.AddCoinToolSender(a, txHash)
 						}
+					}
+					if b.String() == "0x97faab98f1a9e5c803c43a6293759fcc7ed000b9" { // robotXen
+						if len(c) >= 4 {
+							tmSender.AddRobotXenFunc(c[:4], txHash)
+						}
+
 					}
 				}
 				if info.Height%10000 == 0 {
@@ -350,9 +358,31 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 			fmt.Println("stop cal sender")
 		}()
 	}
-
 	wg.Wait()
-	m.Print()
+
+	ans := make([]common.Address, 0)
+	for sender, _ := range tmSender.coinToolAddrs {
+		ans = append(ans, common.HexToAddress(sender))
+	}
+
+	for method, txhash := range tmSender.robotXenMethod {
+		fmt.Println("method", method, txhash.String())
+	}
+	return ans
+}
+
+// replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
+func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
+
+	manager := NewManager(originDataDir)
+
+	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
+	time.Unix(ts.Int64(), 0).Year()
+	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
+
+	sender := manager.GetCoinToolsSenderList()
+	fmt.Println("len(sender)", len(sender))
+
 }
 
 func registerReplayFlags(cmd *cobra.Command) *cobra.Command {
