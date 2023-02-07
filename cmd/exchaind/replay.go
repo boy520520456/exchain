@@ -10,6 +10,7 @@ import (
 	"github.com/okex/exchain/cmd/exchaind/base"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
 	"log"
+	"math/big"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -292,7 +293,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	//	panic(err)
 	//}
 	_, value := tree.GetWithIndex(sb)
-	fmt.Println("value", hex.EncodeToString(sb), value)
+	fmt.Println("value", hex.EncodeToString(sb), hex.EncodeToString(value), new(big.Int).SetBytes(value).String())
 	return
 
 	resChan := make(chan A, maxResInChan)
