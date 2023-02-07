@@ -463,6 +463,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 type calStruct struct {
 	addr common.Address
 	hash common.Hash
+	cnt  int
 }
 
 func (m *Manager) cal() {
@@ -470,16 +471,19 @@ func (m *Manager) cal() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
+		cnt := 0
 		for addr, hash := range tmSender.useMapHash {
 			res <- calStruct{
 				addr: addr,
 				hash: hash,
+				cnt:  cnt,
 			}
+			cnt++
 		}
 		wg.Done()
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 128; index++ {
 		go func() {
 			wg.Add(1)
 			for c := range res {
@@ -493,6 +497,9 @@ func (m *Manager) cal() {
 					} else if tmSender.contractType[c.hash] == 2 {
 						tmSender.AddGUoqiRobotXen(guoqiTs)
 					}
+				}
+				if c.cnt%50000 == 0 {
+					fmt.Println("cal guoqi", c.cnt, tmSender.guoqiCnt)
 				}
 			}
 			wg.Done()
@@ -527,7 +534,6 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		wg.Done()
 	}()
 	wg.Wait()
-
 	manager.cal()
 
 }
