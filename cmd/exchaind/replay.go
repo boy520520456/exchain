@@ -310,9 +310,10 @@ func (m *Manager) RangeBlock() {
 		for height := m.start; height <= m.end; height++ {
 			res <- int64(height)
 		}
+		wg.Done()
 	}()
 
-	for index := 0; index < 8; index++ {
+	for index := 0; index < 16; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
