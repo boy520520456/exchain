@@ -401,7 +401,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 15414660, 17200533)
+	manager := NewManager(originDataDir, 15414660, 17190000)
 	//manager := NewManager(originDataDir, 17172002, 17192002)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
