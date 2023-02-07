@@ -342,8 +342,10 @@ func (m *Manager) RangeBlock() {
 					if err != nil {
 						fmt.Println("fuckkkk", hex.EncodeToString(v.Data), len(v.Data), resp.height, ii)
 					}
+					fmt.Println("345----,", ii, len(data.Logs))
 					checkerr(err)
 					for _, logs := range data.Logs {
+						fmt.Println("------", len(logs.Topics), logs.Topics[0].String())
 						if len(logs.Topics) == 4 && logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
 						}
