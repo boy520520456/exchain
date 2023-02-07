@@ -491,7 +491,7 @@ func (m *Manager) cal() {
 	}()
 
 	tt := time.Now()
-	for index := 0; index < 100000; index++ {
+	for index := 0; index < 2000; index++ {
 		go func() {
 			wg.Add(1)
 			for c := range res {
