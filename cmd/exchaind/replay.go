@@ -347,6 +347,7 @@ func (m *Manager) RangeBlock() {
 					for _, logs := range data.Logs {
 						fmt.Println("------", len(logs.Topics), logs.Topics[0].String())
 						if len(logs.Topics) == 4 && logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
+							fmt.Println("sb-----", common.BytesToAddress(logs.Topics[1].Bytes()).String(), data.TxHash.String())
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
 						}
 					}
