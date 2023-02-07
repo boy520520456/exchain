@@ -197,18 +197,22 @@ type M struct {
 	coinToolAddrs map[string]bool
 
 	robotXenMethod map[string]common.Hash
-	mu             sync.Mutex
+
+	contractType map[common.Hash]int
+	mu           sync.Mutex
 }
 
 func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 	m.mu.Lock()
 	m.coinToolAddrs[address] = true
+	m.contractType[txHash] = 1
 	m.mu.Unlock()
 }
 
 func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
 	m.mu.Lock()
 	m.robotXenMethod[hex.EncodeToString(method)] = txHash
+	m.contractType[txHash] = 2
 	m.mu.Unlock()
 }
 
@@ -228,8 +232,10 @@ func (m *M) Print() {
 
 var (
 	tmSender = &M{
-		coinToolAddrs: make(map[string]bool, 0),
-		mu:            sync.Mutex{},
+		coinToolAddrs:  make(map[string]bool, 0),
+		robotXenMethod: make(map[string]common.Hash, 0),
+		contractType:   make(map[common.Hash]int, 0),
+		mu:             sync.Mutex{},
 	}
 	maxResInChan = 500000
 )
@@ -245,7 +251,6 @@ func makeKey(addr common.Address) common.Hash {
 		ans = append(ans, []byte{0}...)
 	}
 	ans = append(ans, []byte{9}...)
-	fmt.Println("ans", hex.EncodeToString(ans))
 
 	kh := crypto.NewKeccakState()
 	kh.Reset()
@@ -331,7 +336,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		fmt.Println("stop load from db")
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 16; index++ {
 		wg.Add(1)
 		go func() {
 			for info := range resChan {
@@ -355,7 +360,6 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 				}
 			}
 			wg.Done()
-			fmt.Println("stop cal sender")
 		}()
 	}
 	wg.Wait()
