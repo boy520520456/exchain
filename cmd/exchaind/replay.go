@@ -402,7 +402,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		stopChan <- struct{}{}
 	}()
 	go func() {
-		for height := middle + 1; height <= middle; height++ {
+		for height := middle + 1; height <= m.end; height++ {
 			//for height := 17172002; height <= 17172002; height++ {
 			res := m.blockStore.LoadBlock(int64(height))
 
