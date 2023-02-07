@@ -369,12 +369,12 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 					a, b, c, _ := makeResult(v, int64(info.Height))
 					//fmt.Println("a", a, b.String(), hex.EncodeToString(c))
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
-						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" {
+						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" { //claimBatch
 							tmSender.AddCoinToolSender(a, txHash)
 						}
 					}
 					if b.String() == "0x97FAaB98f1A9E5C803C43a6293759FcC7eD000b9" { // robotXen
-						if len(c) >= 4 {
+						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "a0712d68" { //mint
 							tmSender.AddRobotXenFunc(c[:4], txHash)
 						}
 
