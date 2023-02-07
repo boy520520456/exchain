@@ -490,6 +490,7 @@ func (m *Manager) cal() {
 		close(res)
 	}()
 
+	tt := time.Now()
 	for index := 0; index < 100000; index++ {
 		go func() {
 			wg.Add(1)
@@ -505,8 +506,8 @@ func (m *Manager) cal() {
 						tmSender.AddGUoqiRobotXen(guoqiTs)
 					}
 				}
-				if c.cnt%50000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.guoqiCnt)
+				if c.cnt%100000 == 0 {
+					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.guoqiCnt, tmSender.guoqiCointools, tmSender.guoqiRobotXen, time.Now().Sub(tt).Seconds())
 				}
 			}
 			wg.Done()
