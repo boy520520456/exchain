@@ -348,8 +348,10 @@ func (m *Manager) RangeBlock() {
 	}
 	wg.Wait()
 
+	fmt.Println("UserList", len(tmSender.useList))
 	for k, v := range tmSender.useList {
 		fmt.Println("useList", k, v)
+		break
 	}
 }
 
