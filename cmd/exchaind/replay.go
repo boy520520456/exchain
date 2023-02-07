@@ -310,10 +310,24 @@ func (m *Manager) RangeBlock() {
 	res := make(chan mintInfo, 500000)
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
+
+	middle := (m.start + m.end) / 2
 
 	go func() {
-		for height := m.start; height <= m.end; height++ {
+		for height := m.start; height <= middle; height++ {
+			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
+			checkerr(err)
+			res <- mintInfo{resp: resp, height: int64(height)}
+			if height%20000 == 0 {
+				fmt.Println("load from db abci", height)
+			}
+		}
+		wg.Done()
+		close(res)
+	}()
+	go func() {
+		for height := middle + 1; height <= m.end; height++ {
 			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
 			checkerr(err)
 			res <- mintInfo{resp: resp, height: int64(height)}
@@ -328,14 +342,13 @@ func (m *Manager) RangeBlock() {
 		wg.Add(1)
 		go func() {
 			for resp := range res {
-				for ii, v := range resp.resp.DeliverTxs {
-
+				for _, v := range resp.resp.DeliverTxs {
 					if len(v.Data) == 0 {
 						continue
 					}
 					data, err := evmtypes.DecodeResultData(v.Data)
 					if err != nil {
-						fmt.Println("fuckkkk", hex.EncodeToString(v.Data), len(v.Data), resp.height, ii)
+						fmt.Println("fuckkkk", err)
 						continue
 					}
 					checkerr(err)
