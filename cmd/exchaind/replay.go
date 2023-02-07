@@ -436,7 +436,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 		close(resChan)
 	}()
 
-	for index := 0; index < 128; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
