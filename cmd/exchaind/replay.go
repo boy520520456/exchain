@@ -481,6 +481,7 @@ func (m *Manager) cal() {
 			cnt++
 		}
 		wg.Done()
+		close(res)
 	}()
 
 	for index := 0; index < 128; index++ {
