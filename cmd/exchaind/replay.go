@@ -316,6 +316,7 @@ func (m *Manager) RangeBlock() {
 		checkerr(err)
 		for _, v := range resp.DeliverTxs {
 			data, err := evmtypes.DecodeResultData(v.Data)
+			fmt.Println("tx--", data.TxHash.String(), len(data.Logs))
 			checkerr(err)
 			for _, logs := range data.Logs {
 				fmt.Println("vvv", len(logs.Topics), logs.Topics[0])
