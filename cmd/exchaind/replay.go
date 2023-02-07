@@ -407,17 +407,17 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
 		manager.RangeBlock()
 		wg.Done()
 	}()
 
-	go func() {
-		sender := manager.GetCoinToolsSenderList()
-		fmt.Println("len(sender)", len(sender))
-		wg.Done()
-	}()
+	//go func() {
+	//	sender := manager.GetCoinToolsSenderList()
+	//	fmt.Println("len(sender)", len(sender))
+	//	wg.Done()
+	//}()
 	wg.Wait()
 
 }
