@@ -312,7 +312,7 @@ func (m *Manager) RangeBlock() {
 		}
 	}()
 
-	for index := 0; index < 4; index++ {
+	for index := 0; index < 8; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
@@ -348,7 +348,7 @@ func (m *Manager) RangeBlock() {
 
 func (m *Manager) GetCoinToolsSenderList() []common.Address {
 
-	resChan := make(chan int64, 50000)
+	resChan := make(chan int64, 500000)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -359,7 +359,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		wg.Done()
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
