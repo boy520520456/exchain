@@ -194,27 +194,69 @@ type A struct {
 }
 
 type M struct {
-	useMapHash    map[common.Address][]common.Hash
+	useMapHash    map[common.Address]common.Hash
 	useMapCnt     map[common.Address]int
-	coinToolAddrs map[string]bool
+	coinToolAddrs map[common.Address]bool
 
 	contractType map[common.Hash]int
 	mu           sync.Mutex
+
+	guoqiCnt int
+	allMp    map[int]map[int]int
+
+	guoqiCointools int
+	coinToolsMp    map[int]map[int]int
+
+	guoqiRobotXen int
+	robotXenMp    map[int]map[int]int
+}
+
+func (m *M) AddGuoqiCnt(ts time.Time) {
+	year := ts.Year()
+	month := int(ts.Month())
+	m.mu.Lock()
+	if _, ok := m.allMp[year]; !ok {
+		m.allMp[year] = make(map[int]int)
+	}
+	m.allMp[year][month]++
+	m.guoqiCnt++
+	m.mu.Unlock()
+}
+
+func (m *M) AddGuoqiCointool(ts time.Time) {
+	year := ts.Year()
+	month := int(ts.Month())
+	m.mu.Lock()
+	if _, ok := m.coinToolsMp[year]; !ok {
+		m.coinToolsMp[year] = make(map[int]int)
+	}
+	m.coinToolsMp[year][month]++
+	m.guoqiCointools++
+	m.mu.Unlock()
+}
+
+func (m *M) AddGUoqiRobotXen(ts time.Time) {
+	year := ts.Year()
+	month := int(ts.Month())
+	m.mu.Lock()
+	if _, ok := m.robotXenMp[year]; !ok {
+		m.robotXenMp[year] = make(map[int]int)
+	}
+	m.robotXenMp[year][month]++
+	m.guoqiCointools++
+	m.mu.Unlock()
 }
 
 func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
 	m.mu.Lock()
 	m.useMapCnt[addr]++
 
-	if _, ok := m.useMapHash[addr]; !ok {
-		m.useMapHash[addr] = make([]common.Hash, 0)
-	}
-	m.useMapHash[addr] = append(m.useMapHash[addr], txHash)
+	m.useMapHash[addr] = txHash
 	m.mu.Unlock()
 }
 func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 	m.mu.Lock()
-	m.coinToolAddrs[address] = true
+	m.coinToolAddrs[common.HexToAddress(address)] = true
 	m.contractType[txHash] = 1
 	m.mu.Unlock()
 }
@@ -229,12 +271,15 @@ func (m *M) AddRobotXenFunc(txHash common.Hash) {
 var (
 	tmSender = &M{
 		useMapCnt:     make(map[common.Address]int, 0),
-		useMapHash:    make(map[common.Address][]common.Hash, 0),
-		coinToolAddrs: make(map[string]bool, 0),
+		useMapHash:    make(map[common.Address]common.Hash, 0),
+		coinToolAddrs: make(map[common.Address]bool, 0),
 		contractType:  make(map[common.Hash]int, 0),
-		mu:            sync.Mutex{},
+
+		allMp:       make(map[int]map[int]int, 0),
+		coinToolsMp: make(map[int]map[int]int, 0),
+		robotXenMp:  make(map[int]map[int]int, 0),
+		mu:          sync.Mutex{},
 	}
-	maxResInChan = 500000
 )
 
 func makeKey(addr common.Address) common.Hash {
@@ -324,7 +369,7 @@ func (m *Manager) RangeBlock() {
 		wg.Add(1)
 		go func() {
 			for height := range res {
-				resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
+				resp, err := sm.LoadABCIResponses(m.stateStore, height)
 				checkerr(err)
 				for _, v := range resp.DeliverTxs {
 					if len(v.Data) == 0 {
@@ -332,7 +377,6 @@ func (m *Manager) RangeBlock() {
 					}
 					data, err := evmtypes.DecodeResultData(v.Data)
 					if err != nil {
-						//fmt.Println("fuckkkk", err)
 						continue
 					}
 					checkerr(err)
@@ -358,7 +402,7 @@ func (m *Manager) RangeBlock() {
 	fmt.Println("allCnt", cnt)
 }
 
-func (m *Manager) GetCoinToolsSenderList() []common.Address {
+func (m *Manager) GetCoinToolsSenderList() {
 
 	resChan := make(chan int64, 500000)
 
@@ -400,12 +444,50 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 	}
 	wg.Wait()
 
-	ans := make([]common.Address, 0)
-	for sender, _ := range tmSender.coinToolAddrs {
-		ans = append(ans, common.HexToAddress(sender))
-	}
+}
 
-	return ans
+type calStruct struct {
+	addr common.Address
+	hash common.Hash
+}
+
+func (m *Manager) cal() {
+	res := make(chan calStruct, 500000)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		for addr, hash := range tmSender.useMapHash {
+			res <- calStruct{
+				addr: addr,
+				hash: hash,
+			}
+		}
+		wg.Done()
+	}()
+
+	for index := 0; index < 32; index++ {
+		go func() {
+			wg.Add(1)
+			for c := range res {
+				ts := m.GetMaturityTs(c.addr)
+				guoqiTs := time.Unix(ts.Int64(), 0)
+				if time.Now().Unix() >= ts.Int64() {
+					tmSender.AddGuoqiCnt(guoqiTs)
+
+					if tmSender.contractType[c.hash] == 1 {
+						tmSender.AddGuoqiCointool(guoqiTs)
+					} else if tmSender.contractType[c.hash] == 2 {
+						tmSender.AddGUoqiRobotXen(guoqiTs)
+					}
+				}
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	fmt.Println("guoqi", "all", tmSender.guoqiCnt, "coinTool", tmSender.guoqiCointools, "robotXen", tmSender.guoqiRobotXen)
+
 }
 
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
@@ -419,18 +501,20 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		manager.RangeBlock()
 		wg.Done()
 	}()
 
-	//go func() {
-	//	sender := manager.GetCoinToolsSenderList()
-	//	fmt.Println("len(sender)", len(sender))
-	//	wg.Done()
-	//}()
+	go func() {
+		manager.GetCoinToolsSenderList()
+		fmt.Println("len(sender)", len(tmSender.coinToolAddrs))
+		wg.Done()
+	}()
 	wg.Wait()
+
+	manager.cal()
 
 }
 
