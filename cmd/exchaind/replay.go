@@ -196,8 +196,7 @@ type A struct {
 type M struct {
 	useList map[common.Address]common.Hash
 
-	coinToolAddrs  map[string]bool
-	robotXenMethod map[string]common.Hash
+	coinToolAddrs map[string]bool
 
 	contractType map[common.Hash]int
 	mu           sync.Mutex
@@ -215,12 +214,8 @@ func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 	m.mu.Unlock()
 }
 
-func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
+func (m *M) AddRobotXenFunc(txHash common.Hash) {
 	m.mu.Lock()
-	if _, ok := m.robotXenMethod[hex.EncodeToString(method)]; !ok {
-		m.robotXenMethod[hex.EncodeToString(method)] = txHash
-		fmt.Println("fuck---", txHash.String(), hex.EncodeToString(method))
-	}
 
 	m.contractType[txHash] = 2
 	m.mu.Unlock()
@@ -228,11 +223,10 @@ func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
 
 var (
 	tmSender = &M{
-		useList:        make(map[common.Address]common.Hash, 0),
-		coinToolAddrs:  make(map[string]bool, 0),
-		robotXenMethod: make(map[string]common.Hash, 0),
-		contractType:   make(map[common.Hash]int, 0),
-		mu:             sync.Mutex{},
+		useList:       make(map[common.Address]common.Hash, 0),
+		coinToolAddrs: make(map[string]bool, 0),
+		contractType:  make(map[common.Hash]int, 0),
+		mu:            sync.Mutex{},
 	}
 	maxResInChan = 500000
 )
@@ -348,9 +342,9 @@ func (m *Manager) RangeBlock() {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
 						}
 					}
-					if resp.height%10000 == 0 {
-						fmt.Println("cal abci", resp.height)
-					}
+				}
+				if resp.height%10000 == 0 {
+					fmt.Println("cal abci", resp.height)
 				}
 			}
 			wg.Done()
@@ -399,7 +393,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 					}
 					if b.String() == "0x97FAaB98f1A9E5C803C43a6293759FcC7eD000b9" { // robotXen
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "a0712d68" { //mint
-							tmSender.AddRobotXenFunc(c[:4], txHash)
+							tmSender.AddRobotXenFunc(txHash)
 						}
 
 					}
