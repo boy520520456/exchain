@@ -335,7 +335,7 @@ func (m *Manager) RangeBlock() {
 						}
 					}
 				}
-				if height%20000 == 0 {
+				if height%50000 == 0 {
 					fmt.Println("cal abci", height)
 				}
 			}
@@ -379,7 +379,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 						}
 					}
 				}
-				if height%20000 == 0 {
+				if height%50000 == 0 {
 					fmt.Println("cal sender", height)
 				}
 			}
