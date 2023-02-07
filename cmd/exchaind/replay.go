@@ -360,10 +360,6 @@ func (m *Manager) RangeBlock() {
 	wg.Wait()
 
 	fmt.Println("UserList", len(tmSender.useList))
-	for k, v := range tmSender.useList {
-		fmt.Println("useList", k, v)
-		break
-	}
 }
 
 func (m *Manager) GetCoinToolsSenderList() []common.Address {
@@ -397,7 +393,6 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 				for _, v := range info.Txs {
 					txHash := common.BytesToHash(v.Hash(int64(info.Height)))
 					a, b, c, _ := makeResult(v, int64(info.Height))
-					//fmt.Println("a", a, b.String(), hex.EncodeToString(c))
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" { //claimBatch
 							tmSender.AddCoinToolSender(a, txHash)
@@ -424,10 +419,6 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		ans = append(ans, common.HexToAddress(sender))
 	}
 
-	for method, txhash := range tmSender.robotXenMethod {
-		fmt.Println("method", method, txhash.String())
-	}
-	fmt.Println("len", len(tmSender.coinToolAddrs), len(tmSender.robotXenMethod))
 	return ans
 }
 
@@ -435,7 +426,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 	//manager := NewManager(originDataDir, 15414660, 17200533)
-	manager := NewManager(originDataDir, 17172002, 17172002)
+	manager := NewManager(originDataDir, 17172002, 17192002)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
