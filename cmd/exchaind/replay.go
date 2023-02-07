@@ -300,56 +300,25 @@ func (m *Manager) GetMaturityTs(addr common.Address) *big.Int {
 	return new(big.Int).SetBytes(value)
 }
 
-type mintInfo struct {
-	resp   *sm.ABCIResponses
-	height int64
-}
-
 func (m *Manager) RangeBlock() {
 
-	res := make(chan mintInfo, 500000)
+	res := make(chan int64, 500000)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
-
-	middle := (m.start + m.end) / 2
-
-	stopChan := make(chan struct{}, 0)
+	wg.Add(1)
 	go func() {
-		for height := m.start; height <= middle; height++ {
-			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
-			checkerr(err)
-			res <- mintInfo{resp: resp, height: int64(height)}
-			if height%20000 == 0 {
-				fmt.Println("load from db abci", height)
-			}
+		for height := m.start; height <= m.end; height++ {
+			res <- int64(height)
 		}
-		wg.Done()
-		stopChan <- struct{}{}
-	}()
-	go func() {
-		for height := middle + 1; height <= m.end; height++ {
-			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
-			checkerr(err)
-			res <- mintInfo{resp: resp, height: int64(height)}
-			if height%20000 == 0 {
-				fmt.Println("load from db abci", height)
-			}
-		}
-		wg.Done()
-		stopChan <- struct{}{}
-	}()
-	go func() {
-		<-stopChan
-		<-stopChan
-		close(res)
 	}()
 
-	for index := 0; index < 8; index++ {
+	for index := 0; index < 16; index++ {
 		wg.Add(1)
 		go func() {
-			for resp := range res {
-				for _, v := range resp.resp.DeliverTxs {
+			for height := range res {
+				resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
+				checkerr(err)
+				for _, v := range resp.DeliverTxs {
 					if len(v.Data) == 0 {
 						continue
 					}
@@ -365,8 +334,8 @@ func (m *Manager) RangeBlock() {
 						}
 					}
 				}
-				if resp.height%10000 == 0 {
-					fmt.Println("cal abci", resp.height)
+				if height%20000 == 0 {
+					fmt.Println("cal abci", height)
 				}
 			}
 			wg.Done()
@@ -379,73 +348,25 @@ func (m *Manager) RangeBlock() {
 
 func (m *Manager) GetCoinToolsSenderList() []common.Address {
 
-	resChan := make(chan A, 50000)
+	resChan := make(chan int64, 50000)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
-	stopChan := make(chan struct{}, 0)
-	middle := (m.start + m.end) / 2
-	go func() {
-		for height := m.start; height <= middle; height++ {
-			//for height := 17172002; height <= 17172002; height++ {
-			res := m.blockStore.LoadBlock(int64(height))
-
-			resChan <- A{
-				Height: height,
-				Txs:    res.Txs,
-			}
-			if height%20000 == 0 {
-				fmt.Println("load from db txs", height)
-			}
-		}
-		wg.Done()
-		stopChan <- struct{}{}
-	}()
-	go func() {
-		for height := middle + 1; height <= m.end; height++ {
-			//for height := 17172002; height <= 17172002; height++ {
-			res := m.blockStore.LoadBlock(int64(height))
-
-			resChan <- A{
-				Height: height,
-				Txs:    res.Txs,
-			}
-			if height%20000 == 0 {
-				fmt.Println("load from db txs", height)
-			}
-		}
-		wg.Done()
-		stopChan <- struct{}{}
-	}()
-	go func() {
-		<-stopChan
-		<-stopChan
-		close(resChan)
-	}()
+	wg.Add(1)
 	go func() {
 		for height := m.start; height <= m.end; height++ {
-			//for height := 17172002; height <= 17172002; height++ {
-			res := m.blockStore.LoadBlock(int64(height))
-
-			resChan <- A{
-				Height: height,
-				Txs:    res.Txs,
-			}
-			if height%20000 == 0 {
-				fmt.Println("load from db txs", height)
-			}
+			resChan <- int64(height)
 		}
-		close(resChan)
 		wg.Done()
 	}()
 
-	for index := 0; index < 8; index++ {
+	for index := 0; index < 16; index++ {
 		wg.Add(1)
 		go func() {
-			for info := range resChan {
-				for _, v := range info.Txs {
-					txHash := common.BytesToHash(v.Hash(int64(info.Height)))
-					a, b, c, _ := makeResult(v, int64(info.Height))
+			for height := range resChan {
+				res := m.blockStore.LoadBlock(height)
+				for _, v := range res.Txs {
+					txHash := common.BytesToHash(v.Hash(height))
+					a, b, c, _ := makeResult(v, int64(height))
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" { //claimBatch
 							tmSender.AddCoinToolSender(a, txHash)
@@ -458,8 +379,8 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 
 					}
 				}
-				if info.Height%10000 == 0 {
-					fmt.Println("cal sender", info.Height)
+				if height%20000 == 0 {
+					fmt.Println("cal sender", height)
 				}
 			}
 			wg.Done()
