@@ -307,7 +307,8 @@ func (m *Manager) GetMaturityTs(addr common.Address) *big.Int {
 }
 
 type mintInfo struct {
-	resp *sm.ABCIResponses
+	resp   *sm.ABCIResponses
+	height int64
 }
 
 func (m *Manager) RangeBlock() {
@@ -321,7 +322,7 @@ func (m *Manager) RangeBlock() {
 		for height := m.start; height <= m.end; height++ {
 			resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
 			checkerr(err)
-			res <- mintInfo{resp: resp}
+			res <- mintInfo{resp: resp, height: int64(height)}
 			if height%20000 == 0 {
 				fmt.Println("load abci", height)
 			}
@@ -340,6 +341,9 @@ func (m *Manager) RangeBlock() {
 						if len(logs.Topics) == 4 && logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
 						}
+					}
+					if resp.height%10000 == 0 {
+						fmt.Println("cal abci", resp.height)
 					}
 				}
 			}
