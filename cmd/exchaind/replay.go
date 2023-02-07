@@ -215,12 +215,15 @@ type M struct {
 	contractType map[common.Hash]int
 	mu           sync.Mutex
 
+	muAll    sync.Mutex
 	guoqiCnt int
 	allMp    map[int]map[int]int
 
+	muCoinTool     sync.Mutex
 	guoqiCointools int
 	coinToolsMp    map[int]map[int]int
 
+	muRobotXen    sync.Mutex
 	guoqiRobotXen int
 	robotXenMp    map[int]map[int]int
 }
@@ -228,37 +231,37 @@ type M struct {
 func (m *M) AddGuoqiCnt(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.mu.Lock()
+	m.muAll.Lock()
 	if _, ok := m.allMp[year]; !ok {
 		m.allMp[year] = make(map[int]int)
 	}
 	m.allMp[year][month]++
 	m.guoqiCnt++
-	m.mu.Unlock()
+	m.muAll.Unlock()
 }
 
 func (m *M) AddGuoqiCointool(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.mu.Lock()
+	m.muCoinTool.Lock()
 	if _, ok := m.coinToolsMp[year]; !ok {
 		m.coinToolsMp[year] = make(map[int]int)
 	}
 	m.coinToolsMp[year][month]++
 	m.guoqiCointools++
-	m.mu.Unlock()
+	m.muCoinTool.Unlock()
 }
 
 func (m *M) AddGUoqiRobotXen(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.mu.Lock()
+	m.muRobotXen.Lock()
 	if _, ok := m.robotXenMp[year]; !ok {
 		m.robotXenMp[year] = make(map[int]int)
 	}
 	m.robotXenMp[year][month]++
 	m.guoqiCointools++
-	m.mu.Unlock()
+	m.muRobotXen.Unlock()
 }
 
 func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
@@ -293,6 +296,9 @@ var (
 		coinToolsMp: make(map[int]map[int]int, 0),
 		robotXenMp:  make(map[int]map[int]int, 0),
 		mu:          sync.Mutex{},
+		muAll:       sync.Mutex{},
+		muCoinTool:  sync.Mutex{},
+		muRobotXen:  sync.Mutex{},
 	}
 )
 
@@ -484,7 +490,7 @@ func (m *Manager) cal() {
 		close(res)
 	}()
 
-	for index := 0; index < 128; index++ {
+	for index := 0; index < 1000; index++ {
 		go func() {
 			wg.Add(1)
 			for c := range res {
@@ -500,7 +506,7 @@ func (m *Manager) cal() {
 					}
 				}
 				if c.cnt%50000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, tmSender.guoqiCnt)
+					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.guoqiCnt)
 				}
 			}
 			wg.Done()
