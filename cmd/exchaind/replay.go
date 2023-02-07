@@ -211,7 +211,11 @@ func (m *M) AddCoinToolSender(address string, txHash common.Hash) {
 
 func (m *M) AddRobotXenFunc(method []byte, txHash common.Hash) {
 	m.mu.Lock()
-	m.robotXenMethod[hex.EncodeToString(method)] = txHash
+	if _, ok := m.robotXenMethod[hex.EncodeToString(method)]; !ok {
+		m.robotXenMethod[hex.EncodeToString(method)] = txHash
+		fmt.Println("fuck---", txHash.String(), hex.EncodeToString(method))
+	}
+
 	m.contractType[txHash] = 2
 	m.mu.Unlock()
 }
@@ -372,6 +376,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 	for method, txhash := range tmSender.robotXenMethod {
 		fmt.Println("method", method, txhash.String())
 	}
+	fmt.Println("len", len(tmSender.coinToolAddrs), len(tmSender.robotXenMethod))
 	return ans
 }
 
