@@ -318,7 +318,7 @@ func (m *Manager) RangeBlock() {
 			checkerr(err)
 			res <- mintInfo{resp: resp, height: int64(height)}
 			if height%20000 == 0 {
-				fmt.Println("load abci", height)
+				fmt.Println("load from db abci", height)
 			}
 		}
 		wg.Done()
@@ -329,12 +329,11 @@ func (m *Manager) RangeBlock() {
 		go func() {
 			for resp := range res {
 				for ii, v := range resp.resp.DeliverTxs {
-					if len(v.Data) == 0 {
-						continue
-					}
+
 					data, err := evmtypes.DecodeResultData(v.Data)
 					if err != nil {
 						fmt.Println("fuckkkk", hex.EncodeToString(v.Data), len(v.Data), resp.height, ii)
+						continue
 					}
 					checkerr(err)
 					for _, logs := range data.Logs {
@@ -371,12 +370,11 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 				Txs:    res.Txs,
 			}
 			if height%20000 == 0 {
-				fmt.Println("load from db", height)
+				fmt.Println("load from db txs", height)
 			}
 		}
 		close(resChan)
 		wg.Done()
-		fmt.Println("stop load from db")
 	}()
 
 	for index := 0; index < 8; index++ {
