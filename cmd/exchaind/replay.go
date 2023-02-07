@@ -245,7 +245,8 @@ func makeKey(addr common.Address) common.Hash {
 	for index := 0; index < 31; index++ {
 		ans = append(ans, []byte{0}...)
 	}
-	ans = append(ans, []byte{11}...)
+	ans = append(ans, []byte{9}...)
+	fmt.Println("ans", hex.EncodeToString(ans))
 
 	kh := crypto.NewKeccakState()
 	kh.Reset()
