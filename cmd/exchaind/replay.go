@@ -385,7 +385,7 @@ func (m *Manager) RangeBlock() {
 		close(res)
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
@@ -436,7 +436,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 		close(resChan)
 	}()
 
-	for index := 0; index < 64; index++ {
+	for index := 0; index < 128; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
@@ -490,7 +490,7 @@ func (m *Manager) cal() {
 		close(res)
 	}()
 
-	for index := 0; index < 1000; index++ {
+	for index := 0; index < 100000; index++ {
 		go func() {
 			wg.Add(1)
 			for c := range res {
@@ -521,8 +521,8 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 15414660, 17200533)
-	//manager := NewManager(originDataDir, 15414660, 15650000)
+	//manager := NewManager(originDataDir, 15414660, 17200533)
+	manager := NewManager(originDataDir, 15414660, 16014660)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
