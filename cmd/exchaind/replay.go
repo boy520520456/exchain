@@ -267,6 +267,7 @@ func makeKey(addr common.Address) common.Hash {
 type Manager struct {
 	tree       *iavl.MutableTree
 	blockStore *store.BlockStore
+	stateStore dbm.DB
 }
 
 func NewManager(originDataDir string) *Manager {
@@ -284,9 +285,13 @@ func NewManager(originDataDir string) *Manager {
 		panic(err)
 	}
 
+	// load state
+	stateStoreDB, err := sdk.NewDB(stateDB, originDataDir)
+
 	return &Manager{
 		tree:       tree,
 		blockStore: originBlockStore,
+		stateStore: stateStoreDB,
 	}
 }
 
@@ -302,6 +307,21 @@ func (m *Manager) GetMaturityTs(addr common.Address) *big.Int {
 	keyInDB = append(keyInDB, realKey.Bytes()...)
 	_, value := m.tree.GetWithIndex(keyInDB)
 	return new(big.Int).SetBytes(value)
+}
+
+func (m *Manager) RangeBlock() {
+	//for height := 15414660; height < 17200533; height++ {
+	for height := 17172002; height <= 17172002; height++ {
+		resp, err := sm.LoadABCIResponses(m.stateStore, int64(height))
+		checkerr(err)
+		for _, v := range resp.DeliverTxs {
+			data, err := evmtypes.DecodeResultData(v.Data)
+			checkerr(err)
+			for _, logs := range data.Logs {
+				fmt.Println("vvv", len(logs.Topics), logs.Topics[0])
+			}
+		}
+	}
 }
 
 func (m *Manager) GetCoinToolsSenderList() []common.Address {
@@ -389,6 +409,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
 	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
+
+	manager.RangeBlock()
 
 	sender := manager.GetCoinToolsSenderList()
 	fmt.Println("len(sender)", len(sender))
