@@ -330,7 +330,7 @@ func (m *Manager) RangeBlock() {
 		wg.Done()
 		close(res)
 	}()
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 8; index++ {
 		wg.Add(1)
 		go func() {
 			for resp := range res {
@@ -385,7 +385,7 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 		fmt.Println("stop load from db")
 	}()
 
-	for index := 0; index < 16; index++ {
+	for index := 0; index < 8; index++ {
 		wg.Add(1)
 		go func() {
 			for info := range resChan {
@@ -424,8 +424,8 @@ func (m *Manager) GetCoinToolsSenderList() []common.Address {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	//manager := NewManager(originDataDir, 15414660, 17200533)
-	manager := NewManager(originDataDir, 17172002, 17192002)
+	manager := NewManager(originDataDir, 15414660, 17200533)
+	//manager := NewManager(originDataDir, 17172002, 17192002)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
