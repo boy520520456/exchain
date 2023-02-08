@@ -554,6 +554,8 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 	manager := NewManager(originDataDir, 15414660, 17200533)
 	//manager := NewManager(originDataDir, 15414660, 15444660)
+	ts := manager.GetMaturityTs(common.HexToAddress("0xa710cA9cc416AD860213E2d8E6089e085D5ac3d4"))
+	fmt.Println("ts", ts.String())
 
 	var wg sync.WaitGroup
 	wg.Add(2)
