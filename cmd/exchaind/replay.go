@@ -215,53 +215,53 @@ type M struct {
 	contractType map[common.Hash]int
 	mu           sync.Mutex
 
-	muAll    sync.Mutex
-	guoqiCnt int
-	allMp    map[int]map[int]int
+	activeMu  sync.Mutex
+	activeCnt int
+	activeMp  map[int]map[int]int
 
-	muCoinTool     sync.Mutex
-	guoqiCointools int
-	coinToolsMp    map[int]map[int]int
+	coinToolMu         sync.Mutex
+	activeCointoolsCnt int
+	activeCoinToolsMp  map[int]map[int]int
 
-	muRobotXen    sync.Mutex
-	guoqiRobotXen int
-	robotXenMp    map[int]map[int]int
+	robotXenMu        sync.Mutex
+	activeRobotXenCnt int
+	activeRobotXenMp  map[int]map[int]int
 }
 
 func (m *M) AddGuoqiCnt(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.muAll.Lock()
-	if _, ok := m.allMp[year]; !ok {
-		m.allMp[year] = make(map[int]int)
+	m.activeMu.Lock()
+	if _, ok := m.activeMp[year]; !ok {
+		m.activeMp[year] = make(map[int]int)
 	}
-	m.allMp[year][month]++
-	m.guoqiCnt++
-	m.muAll.Unlock()
+	m.activeMp[year][month]++
+	m.activeCnt++
+	m.activeMu.Unlock()
 }
 
 func (m *M) AddGuoqiCointool(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.muCoinTool.Lock()
-	if _, ok := m.coinToolsMp[year]; !ok {
-		m.coinToolsMp[year] = make(map[int]int)
+	m.coinToolMu.Lock()
+	if _, ok := m.activeCoinToolsMp[year]; !ok {
+		m.activeCoinToolsMp[year] = make(map[int]int)
 	}
-	m.coinToolsMp[year][month]++
-	m.guoqiCointools++
-	m.muCoinTool.Unlock()
+	m.activeCoinToolsMp[year][month]++
+	m.activeCointoolsCnt++
+	m.coinToolMu.Unlock()
 }
 
 func (m *M) AddGUoqiRobotXen(ts time.Time) {
 	year := ts.Year()
 	month := int(ts.Month())
-	m.muRobotXen.Lock()
-	if _, ok := m.robotXenMp[year]; !ok {
-		m.robotXenMp[year] = make(map[int]int)
+	m.robotXenMu.Lock()
+	if _, ok := m.activeRobotXenMp[year]; !ok {
+		m.activeRobotXenMp[year] = make(map[int]int)
 	}
-	m.robotXenMp[year][month]++
-	m.guoqiRobotXen++
-	m.muRobotXen.Unlock()
+	m.activeRobotXenMp[year][month]++
+	m.activeRobotXenCnt++
+	m.robotXenMu.Unlock()
 }
 
 func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
@@ -292,13 +292,13 @@ var (
 		coinToolAddrs: make(map[common.Address]bool, 0),
 		contractType:  make(map[common.Hash]int, 0),
 
-		allMp:       make(map[int]map[int]int, 0),
-		coinToolsMp: make(map[int]map[int]int, 0),
-		robotXenMp:  make(map[int]map[int]int, 0),
-		mu:          sync.Mutex{},
-		muAll:       sync.Mutex{},
-		muCoinTool:  sync.Mutex{},
-		muRobotXen:  sync.Mutex{},
+		activeMp:          make(map[int]map[int]int, 0),
+		activeCoinToolsMp: make(map[int]map[int]int, 0),
+		activeRobotXenMp:  make(map[int]map[int]int, 0),
+		mu:                sync.Mutex{},
+		activeMu:          sync.Mutex{},
+		coinToolMu:        sync.Mutex{},
+		robotXenMu:        sync.Mutex{},
 	}
 )
 
@@ -491,7 +491,7 @@ func (m *Manager) cal() {
 	}()
 
 	tt := time.Now()
-	for index := 0; index < 4000; index++ {
+	for index := 0; index < 6000; index++ {
 		go func() {
 			wg.Add(1)
 			for c := range res {
@@ -507,7 +507,7 @@ func (m *Manager) cal() {
 					}
 				}
 				if c.cnt%100000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.guoqiCnt, tmSender.guoqiCointools, tmSender.guoqiRobotXen, time.Now().Sub(tt).Seconds())
+					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
 				}
 			}
 			wg.Done()
@@ -515,10 +515,10 @@ func (m *Manager) cal() {
 	}
 	wg.Wait()
 
-	fmt.Println("guoqi", "all", tmSender.guoqiCnt, "coinTool", tmSender.guoqiCointools, "robotXen", tmSender.guoqiRobotXen)
-	fmt.Println("detail-all", tmSender.allMp)
-	fmt.Println("detail-cointools", tmSender.coinToolsMp)
-	fmt.Println("detail-robotXen", tmSender.robotXenMp)
+	fmt.Println("guoqi", "all", tmSender.activeCnt, "coinTool", tmSender.activeCointoolsCnt, "robotXen", tmSender.activeRobotXenCnt)
+	fmt.Println("detail-all", tmSender.activeMp)
+	fmt.Println("detail-cointools", tmSender.activeCoinToolsMp)
+	fmt.Println("detail-robotXen", tmSender.activeRobotXenMp)
 
 }
 
@@ -526,7 +526,7 @@ func (m *Manager) cal() {
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 	//manager := NewManager(originDataDir, 15414660, 17200533)
-	manager := NewManager(originDataDir, 15414660, 15814660)
+	manager := NewManager(originDataDir, 15414660, 15614660)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
