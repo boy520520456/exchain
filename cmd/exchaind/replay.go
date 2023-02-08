@@ -208,7 +208,8 @@ type A struct {
 }
 
 type M struct {
-	mintList map[common.Address]int
+	activeResult map[common.Address]common.Hash
+	mintList     map[common.Address]int
 
 	useMapHash    map[common.Address]common.Hash
 	useMapCnt     map[common.Address]int
@@ -437,6 +438,14 @@ func (m *Manager) RangeBlock() {
 		cntMinted += v
 	}
 	fmt.Println("allCnt", cnt, "lenMinted", cntMinted, "left", cnt-cntMinted, "useMapCnt", len(tmSender.useMapCnt), "mintList", len(tmSender.mintList))
+
+	tmSender.activeResult = make(map[common.Address]common.Hash, 0)
+	for addr, v := range tmSender.useMapHash {
+		if tmSender.useMapCnt[addr] != tmSender.mintList[addr] {
+			tmSender.activeResult[addr] = v
+		}
+	}
+	fmt.Println("activeResult", len(tmSender.activeResult))
 }
 
 func (m *Manager) GetCoinToolsSenderList() {
@@ -495,7 +504,7 @@ func (m *Manager) cal() {
 	wg.Add(1)
 	go func() {
 		cnt := 0
-		for addr, hash := range tmSender.useMapHash {
+		for addr, hash := range tmSender.activeResult {
 			res <- calStruct{
 				addr: addr,
 				hash: hash,
