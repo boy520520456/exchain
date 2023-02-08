@@ -208,7 +208,7 @@ type A struct {
 }
 
 type M struct {
-	mintList map[common.Address]bool
+	mintList map[common.Address]int
 
 	useMapHash    map[common.Address]common.Hash
 	useMapCnt     map[common.Address]int
@@ -276,7 +276,7 @@ func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
 
 func (m *M) AddMinted(addr common.Address) {
 	m.mu.Lock()
-	m.mintList[addr] = true
+	m.mintList[addr]++
 	m.mu.Unlock()
 }
 func (m *M) AddCoinToolSender(address common.Address, txHash common.Hash) {
@@ -295,7 +295,7 @@ func (m *M) AddRobotXenFunc(txHash common.Hash) {
 
 var (
 	tmSender = &M{
-		mintList:      make(map[common.Address]bool, 0),
+		mintList:      make(map[common.Address]int, 0),
 		useMapCnt:     make(map[common.Address]int, 0),
 		useMapHash:    make(map[common.Address]common.Hash, 0),
 		coinToolAddrs: make(map[common.Address]bool, 0),
@@ -431,7 +431,12 @@ func (m *Manager) RangeBlock() {
 	for _, v := range tmSender.useMapCnt {
 		cnt += v
 	}
-	fmt.Println("allCnt", cnt, "lenMinted", len(tmSender.mintList), "left", cnt-len(tmSender.mintList))
+
+	cntMinted := 0
+	for _, v := range tmSender.mintList {
+		cntMinted += v
+	}
+	fmt.Println("allCnt", cnt, "lenMinted", cntMinted, "left", cnt-cntMinted, "useMapCnt", len(tmSender.useMapCnt), "mintList", len(tmSender.mintList))
 }
 
 func (m *Manager) GetCoinToolsSenderList() {
@@ -510,7 +515,7 @@ func (m *Manager) cal() {
 				if c.cnt%100000 == 0 {
 					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
 				}
-				if tmSender.useMapCnt[c.addr] == 1 && tmSender.mintList[c.addr] {
+				if tmSender.useMapCnt[c.addr] == tmSender.mintList[c.addr] {
 					continue
 				}
 				ts := m.GetMaturityTs(c.addr)
