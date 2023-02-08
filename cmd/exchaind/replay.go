@@ -394,7 +394,7 @@ func (m *Manager) RangeBlock() {
 		close(res)
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range res {
@@ -431,7 +431,7 @@ func (m *Manager) RangeBlock() {
 	for _, v := range tmSender.useMapCnt {
 		cnt += v
 	}
-	fmt.Println("allCnt", cnt, "lenMinted", tmSender.mintList)
+	fmt.Println("allCnt", cnt, "lenMinted", len(tmSender.mintList))
 }
 
 func (m *Manager) GetCoinToolsSenderList() {
@@ -448,7 +448,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 		close(resChan)
 	}()
 
-	for index := 0; index < 32; index++ {
+	for index := 0; index < 64; index++ {
 		wg.Add(1)
 		go func() {
 			for height := range resChan {
