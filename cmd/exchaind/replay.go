@@ -522,7 +522,7 @@ func (m *Manager) cal() {
 			wg.Add(1)
 			for c := range res {
 				if c.cnt%100000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
+					fmt.Println("cal guoqi", c.cnt, len(tmSender.activeResult), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
 				}
 				if tmSender.useMapCnt[c.addr] == tmSender.mintList[c.addr] {
 					continue
