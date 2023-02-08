@@ -499,7 +499,7 @@ type calStruct struct {
 }
 
 func (m *Manager) cal() {
-	res := make(chan calStruct, 500000)
+	res := make(chan calStruct, 5000000)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -518,14 +518,11 @@ func (m *Manager) cal() {
 
 	tt := time.Now()
 	for index := 0; index < 9000; index++ {
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			for c := range res {
 				if c.cnt%100000 == 0 {
 					fmt.Println("cal guoqi", c.cnt, len(tmSender.activeResult), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
-				}
-				if tmSender.useMapCnt[c.addr] == tmSender.mintList[c.addr] {
-					continue
 				}
 				ts := m.GetMaturityTs(c.addr)
 				guoqiTs := time.Unix(ts.Int64(), 0)
@@ -556,10 +553,6 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 	manager := NewManager(originDataDir, 15414660, 17200533)
 	//manager := NewManager(originDataDir, 15414660, 15444660)
-
-	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
-	time.Unix(ts.Int64(), 0).Year()
-	fmt.Println("ts", ts, time.Unix(ts.Int64(), 0).Year(), time.Unix(ts.Int64(), 0).Month(), time.Unix(ts.Int64(), 0).Day())
 
 	var wg sync.WaitGroup
 	wg.Add(2)
