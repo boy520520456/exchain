@@ -528,12 +528,13 @@ func (m *Manager) cal() {
 				guoqiTs := time.Unix(ts.Int64(), 0)
 				if ts.Int64() != 0 {
 					tmSender.AddGuoqiCnt(guoqiTs)
-
 					if tmSender.contractType[c.hash] == 1 {
 						tmSender.AddGuoqiCointool(guoqiTs)
 					} else if tmSender.contractType[c.hash] == 2 {
 						tmSender.AddGUoqiRobotXen(guoqiTs)
 					}
+				} else {
+					fmt.Println("fuck---", c.addr.String(), c.hash.String())
 				}
 			}
 			wg.Done()
