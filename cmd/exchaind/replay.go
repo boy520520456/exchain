@@ -431,7 +431,7 @@ func (m *Manager) RangeBlock() {
 	for _, v := range tmSender.useMapCnt {
 		cnt += v
 	}
-	fmt.Println("allCnt", cnt, "lenMinted", len(tmSender.mintList))
+	fmt.Println("allCnt", cnt, "lenMinted", len(tmSender.mintList), "left", cnt-len(tmSender.mintList))
 }
 
 func (m *Manager) GetCoinToolsSenderList() {
@@ -510,7 +510,6 @@ func (m *Manager) cal() {
 				if c.cnt%100000 == 0 {
 					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
 				}
-
 				if tmSender.useMapCnt[c.addr] == 1 && tmSender.mintList[c.addr] {
 					continue
 				}
@@ -541,8 +540,8 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	//manager := NewManager(originDataDir, 15414660, 17200533)
-	manager := NewManager(originDataDir, 15414660, 15444660)
+	manager := NewManager(originDataDir, 15414660, 17200533)
+	//manager := NewManager(originDataDir, 15414660, 15444660)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
