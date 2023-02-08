@@ -208,6 +208,8 @@ type A struct {
 }
 
 type M struct {
+	mintList map[common.Address]bool
+
 	useMapHash    map[common.Address]common.Hash
 	useMapCnt     map[common.Address]int
 	coinToolAddrs map[common.Address]bool
@@ -271,6 +273,12 @@ func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
 	m.useMapHash[addr] = txHash
 	m.mu.Unlock()
 }
+
+func (m *M) AddMinted(addr common.Address) {
+	m.mu.Lock()
+	m.mintList[addr] = true
+	m.mu.Unlock()
+}
 func (m *M) AddCoinToolSender(address common.Address, txHash common.Hash) {
 	m.mu.Lock()
 	m.coinToolAddrs[address] = true
@@ -287,6 +295,7 @@ func (m *M) AddRobotXenFunc(txHash common.Hash) {
 
 var (
 	tmSender = &M{
+		mintList:      make(map[common.Address]bool, 0),
 		useMapCnt:     make(map[common.Address]int, 0),
 		useMapHash:    make(map[common.Address]common.Hash, 0),
 		coinToolAddrs: make(map[common.Address]bool, 0),
@@ -404,6 +413,9 @@ func (m *Manager) RangeBlock() {
 						if logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
 						}
+						if logs.Topics[0].String() == "0xd74752b13281df13701575f3a507e9b1242e0b5fb040143211c481c1fce573a6" {
+							tmSender.AddMinted(common.BytesToAddress(logs.Topics[1].Bytes()))
+						}
 					}
 				}
 				if height%50000 == 0 {
@@ -419,7 +431,7 @@ func (m *Manager) RangeBlock() {
 	for _, v := range tmSender.useMapCnt {
 		cnt += v
 	}
-	fmt.Println("allCnt", cnt)
+	fmt.Println("allCnt", cnt, "lenMinted", tmSender.mintList)
 }
 
 func (m *Manager) GetCoinToolsSenderList() {
@@ -495,6 +507,13 @@ func (m *Manager) cal() {
 		go func() {
 			wg.Add(1)
 			for c := range res {
+				if c.cnt%100000 == 0 {
+					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
+				}
+
+				if tmSender.useMapCnt[c.addr] == 1 && tmSender.mintList[c.addr] {
+					continue
+				}
 				ts := m.GetMaturityTs(c.addr)
 				guoqiTs := time.Unix(ts.Int64(), 0)
 				if ts.Int64() != 0 {
@@ -505,9 +524,6 @@ func (m *Manager) cal() {
 					} else if tmSender.contractType[c.hash] == 2 {
 						tmSender.AddGUoqiRobotXen(guoqiTs)
 					}
-				}
-				if c.cnt%100000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, len(tmSender.useMapHash), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
 				}
 			}
 			wg.Done()
@@ -525,8 +541,8 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 15414660, 17200533)
-	//manager := NewManager(originDataDir, 15414660, 15484660)
+	//manager := NewManager(originDataDir, 15414660, 17200533)
+	manager := NewManager(originDataDir, 15414660, 15444660)
 
 	ts := manager.GetMaturityTs(common.HexToAddress("0x45b7e4f75d658b5e02811f68fdd71094af03f06e"))
 	time.Unix(ts.Int64(), 0).Year()
