@@ -276,10 +276,10 @@ func (m *M) AddGUoqiRobotXen(ts time.Time) {
 	m.robotXenMu.Unlock()
 }
 
-func (m *M) AddUseList(addr common.Address, txHash common.Hash) {
+func (m *M) AddUseList(addr common.Address, txHash common.Hash, term *big.Int) {
 	m.mu.Lock()
 	m.useMapCnt[addr]++
-
+	m.useHashWithTerm[txHash] = term
 	m.useMapHash[addr] = txHash
 	m.mu.Unlock()
 }
@@ -423,8 +423,7 @@ func (m *Manager) RangeBlock() {
 					checkerr(err)
 					for _, logs := range data.Logs {
 						if logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
-							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
-							fmt.Println("term", hex.EncodeToString(logs.Data), new(big.Int).SetBytes(logs.Data[:32]).String(), data.TxHash.String())
+							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash, new(big.Int).SetBytes(logs.Data[:32]))
 						}
 						if logs.Topics[0].String() == "0xd74752b13281df13701575f3a507e9b1242e0b5fb040143211c481c1fce573a6" {
 							tmSender.AddMinted(common.BytesToAddress(logs.Topics[1].Bytes()))
@@ -511,10 +510,28 @@ type calStruct struct {
 	cnt  int
 }
 
+var (
+	day = time.Hour * 24
+)
+
 func (m *Manager) cal() {
-	//for _, v := range tmSender.activeResult {
-	//	GetMaturityTs:=
-	//}
+
+	cnt := 0
+	for _, v := range tmSender.activeResult {
+
+		guoqiTs := tmSender.hashWithHeight[v].AddDate(0, 0, int(tmSender.useHashWithTerm[v].Int64()))
+
+		tmSender.AddGuoqiCnt(guoqiTs)
+		if tmSender.contractType[v] == 1 {
+			tmSender.AddGuoqiCointool(guoqiTs)
+		} else if tmSender.contractType[v] == 2 {
+			tmSender.AddGUoqiRobotXen(guoqiTs)
+		}
+		cnt++
+		if cnt%100000 == 0 {
+			fmt.Println("handle cal", cnt)
+		}
+	}
 
 	return
 
@@ -571,7 +588,7 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 16110390, 16110390)
+	manager := NewManager(originDataDir, 16110390, 16210390)
 	//manager := NewManager(originDataDir, 15414660, 15444660)
 	ts := manager.GetMaturityTs(common.HexToAddress("0xa710cA9cc416AD860213E2d8E6089e085D5ac3d4"))
 	fmt.Println("ts", ts.String())
