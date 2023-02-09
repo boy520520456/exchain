@@ -208,12 +208,15 @@ type A struct {
 }
 
 type M struct {
-	activeResult map[common.Address]common.Hash
-	mintList     map[common.Address]int
+	hashWithHMu    sync.Mutex
+	hashWithHeight map[common.Hash]time.Time
+	activeResult   map[common.Address]common.Hash
+	mintList       map[common.Address]int
 
-	useMapHash    map[common.Address]common.Hash
-	useMapCnt     map[common.Address]int
-	coinToolAddrs map[common.Address]bool
+	useMapHash      map[common.Address]common.Hash
+	useHashWithTerm map[common.Hash]*big.Int
+	useMapCnt       map[common.Address]int
+	coinToolAddrs   map[common.Address]bool
 
 	contractType map[common.Hash]int
 	mu           sync.Mutex
@@ -229,6 +232,12 @@ type M struct {
 	robotXenMu        sync.Mutex
 	activeRobotXenCnt int
 	activeRobotXenMp  map[int]map[int]int
+}
+
+func (m *M) AddTxHashWithTs(hash common.Hash, ts time.Time) {
+	m.hashWithHMu.Lock()
+	m.hashWithHeight[hash] = ts
+	m.hashWithHMu.Unlock()
 }
 
 func (m *M) AddGuoqiCnt(ts time.Time) {
@@ -296,11 +305,13 @@ func (m *M) AddRobotXenFunc(txHash common.Hash) {
 
 var (
 	tmSender = &M{
-		mintList:      make(map[common.Address]int, 0),
-		useMapCnt:     make(map[common.Address]int, 0),
-		useMapHash:    make(map[common.Address]common.Hash, 0),
-		coinToolAddrs: make(map[common.Address]bool, 0),
-		contractType:  make(map[common.Hash]int, 0),
+		hashWithHeight:  make(map[common.Hash]time.Time, 0),
+		mintList:        make(map[common.Address]int, 0),
+		useMapCnt:       make(map[common.Address]int, 0),
+		useMapHash:      make(map[common.Address]common.Hash, 0),
+		useHashWithTerm: make(map[common.Hash]*big.Int, 0),
+		coinToolAddrs:   make(map[common.Address]bool, 0),
+		contractType:    make(map[common.Hash]int, 0),
 
 		activeMp:          make(map[int]map[int]int, 0),
 		activeCoinToolsMp: make(map[int]map[int]int, 0),
@@ -413,6 +424,7 @@ func (m *Manager) RangeBlock() {
 					for _, logs := range data.Logs {
 						if logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
+							fmt.Println("term", hex.EncodeToString(logs.Data), len(logs.Data))
 						}
 						if logs.Topics[0].String() == "0xd74752b13281df13701575f3a507e9b1242e0b5fb040143211c481c1fce573a6" {
 							tmSender.AddMinted(common.BytesToAddress(logs.Topics[1].Bytes()))
@@ -469,6 +481,7 @@ func (m *Manager) GetCoinToolsSenderList() {
 				res := m.blockStore.LoadBlock(height)
 				for _, v := range res.Txs {
 					txHash := common.BytesToHash(v.Hash(height))
+					tmSender.AddTxHashWithTs(txHash, res.Time)
 					sender, b, c, _ := makeResultWithoutSender(v, height)
 					if b.String() == "0x6f0a55cd633Cc70BeB0ba7874f3B010C002ef59f" { // coinTools
 						if len(c) >= 4 && hex.EncodeToString(c[:4]) == "b1ae2ed1" { //claimBatch
@@ -499,6 +512,12 @@ type calStruct struct {
 }
 
 func (m *Manager) cal() {
+	//for _, v := range tmSender.activeResult {
+	//	GetMaturityTs:=
+	//}
+
+	return
+
 	res := make(chan calStruct, 5000000)
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -552,7 +571,7 @@ func (m *Manager) cal() {
 // replayBlock replays blocks from db, if something goes wrong, it will panic with error message.
 func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
-	manager := NewManager(originDataDir, 15414660, 17200533)
+	manager := NewManager(originDataDir, 16110399, 16110399)
 	//manager := NewManager(originDataDir, 15414660, 15444660)
 	ts := manager.GetMaturityTs(common.HexToAddress("0xa710cA9cc416AD860213E2d8E6089e085D5ac3d4"))
 	fmt.Println("ts", ts.String())
@@ -570,6 +589,7 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 		wg.Done()
 	}()
 	wg.Wait()
+
 	manager.cal()
 
 }
