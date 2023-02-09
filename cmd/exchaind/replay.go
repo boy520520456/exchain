@@ -517,7 +517,7 @@ var (
 func (m *Manager) cal() {
 
 	cnt := 0
-	for _, v := range tmSender.activeResult {
+	for addr, v := range tmSender.activeResult {
 
 		guoqiTs := tmSender.hashWithHeight[v].AddDate(0, 0, int(tmSender.useHashWithTerm[v].Int64()))
 
@@ -525,6 +525,9 @@ func (m *Manager) cal() {
 		if tmSender.contractType[v] == 1 {
 			tmSender.AddGuoqiCointool(guoqiTs)
 		} else if tmSender.contractType[v] == 2 {
+			if guoqiTs.Year() == 2022 {
+				fmt.Println("ca------", addr.String(), v.String(), tmSender.useHashWithTerm[v], guoqiTs.Month(), guoqiTs.Day())
+			}
 			tmSender.AddGUoqiRobotXen(guoqiTs)
 		}
 		cnt++
