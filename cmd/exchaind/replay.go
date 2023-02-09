@@ -424,7 +424,7 @@ func (m *Manager) RangeBlock() {
 					for _, logs := range data.Logs {
 						if logs.Topics[0].String() == "0xe9149e1b5059238baed02fa659dbf4bd932fbcf760a431330df4d934bc942f37" {
 							tmSender.AddUseList(common.BytesToAddress(logs.Topics[1].Bytes()), data.TxHash)
-							fmt.Println("term", hex.EncodeToString(logs.Data), len(logs.Data))
+							fmt.Println("term", hex.EncodeToString(logs.Data), new(big.Int).SetBytes(logs.Data[:32]).String())
 						}
 						if logs.Topics[0].String() == "0xd74752b13281df13701575f3a507e9b1242e0b5fb040143211c481c1fce573a6" {
 							tmSender.AddMinted(common.BytesToAddress(logs.Topics[1].Bytes()))
