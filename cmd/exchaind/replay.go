@@ -528,55 +528,53 @@ func (m *Manager) cal() {
 			tmSender.AddGUoqiRobotXen(guoqiTs)
 		}
 		cnt++
-		if cnt%100000 == 0 {
+		if cnt%1000000 == 0 {
 			fmt.Println("handle cal", cnt)
 		}
 	}
 
-	return
-
-	res := make(chan calStruct, 5000000)
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		cnt := 0
-		for addr, hash := range tmSender.activeResult {
-			res <- calStruct{
-				addr: addr,
-				hash: hash,
-				cnt:  cnt,
-			}
-			cnt++
-		}
-		wg.Done()
-		close(res)
-	}()
-
-	tt := time.Now()
-	for index := 0; index < 9000; index++ {
-		wg.Add(1)
-		go func() {
-			for c := range res {
-				if c.cnt%100000 == 0 {
-					fmt.Println("cal guoqi", c.cnt, len(tmSender.activeResult), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
-				}
-				ts := m.GetMaturityTs(c.addr)
-				guoqiTs := time.Unix(ts.Int64(), 0)
-				if ts.Int64() != 0 {
-					tmSender.AddGuoqiCnt(guoqiTs)
-					if tmSender.contractType[c.hash] == 1 {
-						tmSender.AddGuoqiCointool(guoqiTs)
-					} else if tmSender.contractType[c.hash] == 2 {
-						tmSender.AddGUoqiRobotXen(guoqiTs)
-					}
-				} else {
-					fmt.Println("fuck---", c.addr.String(), c.hash.String())
-				}
-			}
-			wg.Done()
-		}()
-	}
-	wg.Wait()
+	//res := make(chan calStruct, 5000000)
+	//var wg sync.WaitGroup
+	//wg.Add(1)
+	//go func() {
+	//	cnt := 0
+	//	for addr, hash := range tmSender.activeResult {
+	//		res <- calStruct{
+	//			addr: addr,
+	//			hash: hash,
+	//			cnt:  cnt,
+	//		}
+	//		cnt++
+	//	}
+	//	wg.Done()
+	//	close(res)
+	//}()
+	//
+	//tt := time.Now()
+	//for index := 0; index < 9000; index++ {
+	//	wg.Add(1)
+	//	go func() {
+	//		for c := range res {
+	//			if c.cnt%100000 == 0 {
+	//				fmt.Println("cal guoqi", c.cnt, len(tmSender.activeResult), tmSender.activeCnt, tmSender.activeCointoolsCnt, tmSender.activeRobotXenCnt, time.Now().Sub(tt).Seconds())
+	//			}
+	//			ts := m.GetMaturityTs(c.addr)
+	//			guoqiTs := time.Unix(ts.Int64(), 0)
+	//			if ts.Int64() != 0 {
+	//				tmSender.AddGuoqiCnt(guoqiTs)
+	//				if tmSender.contractType[c.hash] == 1 {
+	//					tmSender.AddGuoqiCointool(guoqiTs)
+	//				} else if tmSender.contractType[c.hash] == 2 {
+	//					tmSender.AddGUoqiRobotXen(guoqiTs)
+	//				}
+	//			} else {
+	//				fmt.Println("fuck---", c.addr.String(), c.hash.String())
+	//			}
+	//		}
+	//		wg.Done()
+	//	}()
+	//}
+	//wg.Wait()
 
 	fmt.Println("guoqi", "all", tmSender.activeCnt, "coinTool", tmSender.activeCointoolsCnt, "robotXen", tmSender.activeRobotXenCnt)
 	fmt.Println("detail-all", tmSender.activeMp)
@@ -590,8 +588,6 @@ func replayBlock(ctx *server.Context, originDataDir string, tmNode *node.Node) {
 
 	manager := NewManager(originDataDir, 16110390, 16210390)
 	//manager := NewManager(originDataDir, 15414660, 15444660)
-	ts := manager.GetMaturityTs(common.HexToAddress("0xa710cA9cc416AD860213E2d8E6089e085D5ac3d4"))
-	fmt.Println("ts", ts.String())
 
 	var wg sync.WaitGroup
 	wg.Add(2)
