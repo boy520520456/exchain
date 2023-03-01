@@ -94,5 +94,8 @@ func HasVersionByDiskDB(height int64) bool {
 	if err != nil || len(rst) == 0 {
 		return false
 	}
+	if _, err := InstanceOfMptStore().OpenTrie(ethcmn.BytesToHash(rst)); err != nil {
+		return false
+	}
 	return true
 }

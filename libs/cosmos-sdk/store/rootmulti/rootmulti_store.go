@@ -249,7 +249,7 @@ func (rs *Store) GetCommitVersion() (int64, error) {
 
 	//sort the versions list
 	sort.Slice(versions, func(i, j int) bool { return versions[i] > versions[j] })
-	rs.logger.Info("GetCommitVersion", "iavl:", firstKey.Name(), "versions :", versions)
+	fmt.Println("GetCommitVersion", "iavl:", firstKey.Name(), "versions :", versions)
 	//find version in rootmultistore
 	for _, version := range versions {
 		hasVersion, err := rs.hasVersion(version)
@@ -262,7 +262,26 @@ func (rs *Store) GetCommitVersion() (int64, error) {
 		}
 	}
 
-	return 0, fmt.Errorf("not found any proper version")
+	searchVersion, err := rs.FindHeightForRepairState(versions[len(versions)-1])
+	if err != nil {
+		return 0, err
+	}
+	return searchVersion, nil
+
+}
+
+func (rs *Store) FindHeightForRepairState(biggestHeight int64) (int64, error) {
+	for currHeight := biggestHeight; currHeight > 0; currHeight-- {
+		hasVersion, _ := rs.hasVersion(currHeight)
+		if hasVersion {
+			return currHeight, nil
+		}
+		if currHeight%1000 == 0 {
+			fmt.Println("find height for repair state: current height", currHeight)
+		}
+	}
+	return 0, fmt.Errorf("unexpected behavior : unable to found correct height for repair data , search from block:%d", biggestHeight)
+
 }
 
 // hasVersion means every storesParam in store has this version.
