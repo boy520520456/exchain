@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/VictoriaMetrics/fastcache"
+	"github.com/ethereum/go-ethereum/common"
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/prque"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -31,6 +32,8 @@ const (
 
 var (
 	TrieAccStoreCache uint = 32 // MB
+	applyDelta             = false
+	produceDelta           = false
 )
 
 var cdc = codec.New()
@@ -239,11 +242,18 @@ func (ms *MptStore) ReverseIterator(start, end []byte) types.Iterator {
  */
 func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iavl.TreeDelta) {
 	ms.version++
-
+	fmt.Println("fsc:test================CommitterCommit:", ms.version)
 	// stop pre round prefetch
 	ms.StopPrefetcher()
 
-	root, err := ms.trie.Commit(nil)
+	var root common.Hash
+	var err error
+	if applyDelta {
+		root, err = ms.trie.CommitWithDelta(nil, nil)
+	} else {
+		root, err = ms.trie.Commit(nil)
+	}
+
 	if err != nil {
 		panic("fail to commit trie data: " + err.Error())
 	}
