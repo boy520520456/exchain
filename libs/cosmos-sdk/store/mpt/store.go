@@ -182,7 +182,7 @@ func (ms *MptStore) Get(key []byte) []byte {
 			return nil
 		}
 		return value
-	case byte(1):
+	case byte(1): // TODO auth.AddressStoreKeyPrefix need move
 		value, err := ms.trie.TryGet(key)
 		if err != nil {
 			return nil
@@ -232,7 +232,7 @@ func (ms *MptStore) Set(key, value []byte) {
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
 		t := ms.tryGetStorageTrie(addr, stateRoot, true)
 		t.TryUpdate(realKey, value)
-	case byte(1):
+	case byte(1): // TODO auth.AddressStoreKeyPrefix need move
 		var stateR ethcmn.Hash
 		var err error
 		if trie, ok := ms.storageTrieForSet[ethcmn.BytesToAddress(key[1:])]; ok {
@@ -261,7 +261,7 @@ func (ms *MptStore) Delete(key []byte) {
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
 		t := ms.tryGetStorageTrie(addr, stateRoot, true)
 		t.TryDelete(realKey)
-	case byte(1):
+	case byte(1): //TODO auth.AddressStoreKeyPrefix need move
 		err := ms.trie.TryDelete(key)
 		if err != nil {
 			return
