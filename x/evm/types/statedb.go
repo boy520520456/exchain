@@ -759,7 +759,6 @@ func (csdb *CommitStateDB) GetState(addr ethcmn.Address, hash ethcmn.Hash) ethcm
 		trace.StartTxLog(funcName)
 		defer trace.StopTxLog(funcName)
 	}
-	
 	so := csdb.getStateObject(addr)
 	if so != nil {
 		return so.GetState(csdb.db, hash)

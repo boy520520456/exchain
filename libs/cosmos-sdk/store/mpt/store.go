@@ -1,6 +1,7 @@
 package mpt
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"sync"
@@ -189,7 +190,7 @@ func (ms *MptStore) Get(key []byte) []byte {
 		}
 		return value
 	default:
-		panic("not support mpt key")
+		panic(fmt.Errorf("not support key %s for mpt get", hex.EncodeToString(key)))
 	}
 
 }
@@ -247,7 +248,7 @@ func (ms *MptStore) Set(key, value []byte) {
 			return
 		}
 	default:
-		panic("not support mpt key")
+		panic(fmt.Errorf("not support key %s for mpt set", hex.EncodeToString(key)))
 	}
 }
 
@@ -267,7 +268,7 @@ func (ms *MptStore) Delete(key []byte) {
 			return
 		}
 	default:
-		panic("not support mpt key")
+		panic(fmt.Errorf("not support key %s for mpt delete", hex.EncodeToString(key)))
 
 	}
 
