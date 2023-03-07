@@ -45,6 +45,7 @@ func (csdb *CommitStateDB) CommitMpt(prefetcher *mpt.TriePrefetcher) (ethcmn.Has
 
 	if len(csdb.stateObjectsDirty) > 0 {
 		csdb.stateObjectsDirty = make(map[ethcmn.Address]struct{})
+		fmt.Println("555")
 	}
 
 	if codeWriter.ValueSize() > 0 {

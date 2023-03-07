@@ -375,3 +375,7 @@ func (acc EthAccount) IsContract() bool {
 func (acc EthAccount) GetStateRoot() ethcmn.Hash {
 	return acc.StateRoot
 }
+
+func (acc *EthAccount) SetStateRoot(hash ethcmn.Hash) {
+	acc.StateRoot = hash
+}
