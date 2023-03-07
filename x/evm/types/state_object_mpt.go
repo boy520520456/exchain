@@ -71,6 +71,7 @@ func (so *stateObject) GetCommittedStateMpt(db ethstate.Database, key ethcmn.Has
 		value.SetBytes(content)
 	}
 
+	fmt.Println("FFFFFFFF", so.address.String(), so.account.StateRoot, key.String(), value.String())
 	so.originStorage[key] = value
 	return value
 }

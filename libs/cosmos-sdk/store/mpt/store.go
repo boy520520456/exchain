@@ -1,6 +1,7 @@
 package mpt
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io"
 	"sync"
@@ -242,12 +243,15 @@ func (ms *MptStore) Set(key, value []byte) {
 		t := ms.tryGetStorageTrie(addr, stateRoot)
 		ms.storageTrieForSet[addr] = t
 		ms.storageTrieForSet[addr].TryUpdate(realKey, value)
+		fmt.Println("mpt set storage", addr.String(), stateRoot.String(), hex.EncodeToString(realKey), hex.EncodeToString(value))
 	case byte(1):
 		if trie, ok := ms.storageTrieForSet[ethcmn.BytesToAddress(key[1:])]; ok {
 			stateR := trie.Hash()
 			value = ms.retriever.ModifyAccStateRoot(value, stateR)
+			fmt.Println("modify stateRoot", hex.EncodeToString(key), stateR.String())
 		}
 		err := ms.trie.TryUpdate(key, value)
+		//fmt.Println("mpt set acc ", hex.EncodeToString(key), hex.EncodeToString(value))
 		if err != nil {
 			return
 		}
@@ -301,6 +305,7 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 
 	root, err := ms.trie.Commit(func(_ [][]byte, _ []byte, leaf []byte, parent ethcmn.Hash) error {
 		storageRoot := ms.retriever.RetrieveStateRoot(leaf)
+		fmt.Println("CommitterCOmmit", storageRoot.String())
 		if storageRoot != ethtypes.EmptyRootHash && storageRoot != (ethcmn.Hash{}) {
 			ms.db.TrieDB().Reference(storageRoot, parent)
 		}
