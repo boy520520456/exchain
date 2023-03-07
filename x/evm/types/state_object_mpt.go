@@ -70,8 +70,6 @@ func (so *stateObject) GetCommittedStateMpt(db ethstate.Database, key ethcmn.Has
 		}
 		value.SetBytes(content)
 	}
-
-	fmt.Println("FFFFFFFF", so.address.String(), so.account.StateRoot, key.String(), value.String())
 	so.originStorage[key] = value
 	return value
 }
@@ -128,7 +126,6 @@ func (so *stateObject) updateRoot(db ethstate.Database) {
 func (so *stateObject) updateTrie(db ethstate.Database) {
 	// Make sure all dirty slots are finalized into the pending storage area
 	so.finalise(false) // Don't prefetch any more, pull directly if need be
-	fmt.Println("updateTrie", len(so.pendingStorage))
 	if len(so.pendingStorage) == 0 {
 		return
 	}

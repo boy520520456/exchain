@@ -1,12 +1,10 @@
 package mpt
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"sync"
 
-	"github.com/VictoriaMetrics/fastcache"
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/prque"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -53,7 +51,7 @@ type MptStore struct {
 	db                ethstate.Database
 	triegc            *prque.Prque
 	logger            tmlog.Logger
-	kvCache           *fastcache.Cache
+	//kvCache           *fastcache.Cache
 
 	prefetcher   *TriePrefetcher
 	originalRoot ethcmn.Hash
@@ -98,9 +96,9 @@ func generateMptStore(logger tmlog.Logger, id types.CommitID, db ethstate.Databa
 		db:                db,
 		triegc:            triegc,
 		logger:            logger,
-		kvCache:           fastcache.New(int(TrieAccStoreCache) * 1024 * 1024),
-		retriever:         retriever,
-		exitSignal:        make(chan struct{}),
+		//kvCache:           fastcache.New(int(TrieAccStoreCache) * 1024 * 1024),
+		retriever:  retriever,
+		exitSignal: make(chan struct{}),
 	}
 	err := mptStore.openTrie(id)
 
@@ -177,12 +175,6 @@ func (ms *MptStore) CacheWrapWithTrace(w io.Writer, tc types.TraceContext) types
 }
 
 func (ms *MptStore) Get(key []byte) []byte {
-	if ms.kvCache != nil {
-		if enc := ms.kvCache.Get(nil, key); len(enc) > 0 {
-			return enc
-		}
-	}
-
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
@@ -205,16 +197,13 @@ func (ms *MptStore) Get(key []byte) []byte {
 }
 
 func (ms *MptStore) Has(key []byte) bool {
-	if ms.kvCache != nil {
-		if ms.kvCache.Has(key) {
-			return true
-		}
-	}
-
 	return ms.Get(key) != nil
 }
 
 func (ms *MptStore) tryGetStorageTrie(addr ethcmn.Address, stateRoot ethcmn.Hash) ethstate.Trie {
+	if t, ok := ms.storageTrieForSet[addr]; ok {
+		return t
+	}
 	var t ethstate.Trie
 	var err error
 	t, err = ms.db.OpenStorageTrie(ethcmn.Hash{}, stateRoot)
@@ -233,25 +222,23 @@ func (ms *MptStore) Set(key, value []byte) {
 	if ms.prefetcher != nil {
 		ms.prefetcher.Used(ms.originalRoot, [][]byte{key})
 	}
-	if ms.kvCache != nil {
-		ms.kvCache.Set(key, value)
-	}
-
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
 		t := ms.tryGetStorageTrie(addr, stateRoot)
 		ms.storageTrieForSet[addr] = t
 		ms.storageTrieForSet[addr].TryUpdate(realKey, value)
-		fmt.Println("mpt set storage", addr.String(), stateRoot.String(), hex.EncodeToString(realKey), hex.EncodeToString(value))
 	case byte(1):
+		var stateR ethcmn.Hash
+		var err error
 		if trie, ok := ms.storageTrieForSet[ethcmn.BytesToAddress(key[1:])]; ok {
-			stateR := trie.Hash()
+			stateR, err = trie.Commit(nil)
+			if err != nil {
+				panic(err)
+			}
 			value = ms.retriever.ModifyAccStateRoot(value, stateR)
-			fmt.Println("modify stateRoot", hex.EncodeToString(key), stateR.String())
 		}
-		err := ms.trie.TryUpdate(key, value)
-		//fmt.Println("mpt set acc ", hex.EncodeToString(key), hex.EncodeToString(value))
+		err = ms.trie.TryUpdate(key, value)
 		if err != nil {
 			return
 		}
@@ -264,10 +251,7 @@ func (ms *MptStore) Delete(key []byte) {
 	if ms.prefetcher != nil {
 		ms.prefetcher.Used(ms.originalRoot, [][]byte{key})
 	}
-
-	if ms.kvCache != nil {
-		ms.kvCache.Del(key)
-	}
+	
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
@@ -305,7 +289,6 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 
 	root, err := ms.trie.Commit(func(_ [][]byte, _ []byte, leaf []byte, parent ethcmn.Hash) error {
 		storageRoot := ms.retriever.RetrieveStateRoot(leaf)
-		fmt.Println("CommitterCOmmit", storageRoot.String())
 		if storageRoot != ethtypes.EmptyRootHash && storageRoot != (ethcmn.Hash{}) {
 			ms.db.TrieDB().Reference(storageRoot, parent)
 		}

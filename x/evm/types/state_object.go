@@ -330,7 +330,6 @@ func (so *stateObject) Code(db ethstate.Database) []byte {
 // GetState retrieves a value from the account storage trie. Note, the key will
 // be prefixed with the address of the state object.
 func (so *stateObject) GetState(db ethstate.Database, key ethcmn.Hash) ethcmn.Hash {
-	fmt.Println("GetState", so.stateDB.ctx.IsDeliver(), so.address.String(), key.String())
 	// If the fake storage is set, only lookup the state here(in the debugging mode)
 	if so.fakeStorage != nil {
 		return so.fakeStorage[key]
