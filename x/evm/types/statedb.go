@@ -711,10 +711,7 @@ func (csdb *CommitStateDB) GetCode(addr ethcmn.Address) []byte {
 
 	so := csdb.getStateObject(addr)
 	if so != nil {
-		cc := so.Code(csdb.db)
-
-		fmt.Println("GetCode", addr.String(), len(cc))
-		return cc
+		return so.Code(csdb.db)
 	}
 	return nil
 }
@@ -762,8 +759,7 @@ func (csdb *CommitStateDB) GetState(addr ethcmn.Address, hash ethcmn.Hash) ethcm
 		trace.StartTxLog(funcName)
 		defer trace.StopTxLog(funcName)
 	}
-
-	fmt.Println("fuck-- getState")
+	
 	so := csdb.getStateObject(addr)
 	if so != nil {
 		return so.GetState(csdb.db, hash)

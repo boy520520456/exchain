@@ -51,7 +51,6 @@ type MptStore struct {
 	db                ethstate.Database
 	triegc            *prque.Prque
 	logger            tmlog.Logger
-	//kvCache           *fastcache.Cache
 
 	prefetcher   *TriePrefetcher
 	originalRoot ethcmn.Hash
@@ -96,9 +95,8 @@ func generateMptStore(logger tmlog.Logger, id types.CommitID, db ethstate.Databa
 		db:                db,
 		triegc:            triegc,
 		logger:            logger,
-		//kvCache:           fastcache.New(int(TrieAccStoreCache) * 1024 * 1024),
-		retriever:  retriever,
-		exitSignal: make(chan struct{}),
+		retriever:         retriever,
+		exitSignal:        make(chan struct{}),
 	}
 	err := mptStore.openTrie(id)
 
@@ -178,7 +176,7 @@ func (ms *MptStore) Get(key []byte) []byte {
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
-		t := ms.tryGetStorageTrie(addr, stateRoot)
+		t := ms.tryGetStorageTrie(addr, stateRoot, false)
 		value, err := t.TryGet(realKey)
 		if err != nil {
 			return nil
@@ -200,10 +198,13 @@ func (ms *MptStore) Has(key []byte) bool {
 	return ms.Get(key) != nil
 }
 
-func (ms *MptStore) tryGetStorageTrie(addr ethcmn.Address, stateRoot ethcmn.Hash) ethstate.Trie {
-	if t, ok := ms.storageTrieForSet[addr]; ok {
-		return t
+func (ms *MptStore) tryGetStorageTrie(addr ethcmn.Address, stateRoot ethcmn.Hash, useCache bool) ethstate.Trie {
+	if useCache {
+		if t, ok := ms.storageTrieForSet[addr]; ok {
+			return t
+		}
 	}
+
 	var t ethstate.Trie
 	var err error
 	t, err = ms.db.OpenStorageTrie(ethcmn.Hash{}, stateRoot)
@@ -212,6 +213,10 @@ func (ms *MptStore) tryGetStorageTrie(addr ethcmn.Address, stateRoot ethcmn.Hash
 		if err != nil {
 			panic("unexcepted err")
 		}
+	}
+
+	if useCache {
+		ms.storageTrieForSet[addr] = t
 	}
 	return t
 }
@@ -225,9 +230,8 @@ func (ms *MptStore) Set(key, value []byte) {
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
-		t := ms.tryGetStorageTrie(addr, stateRoot)
-		ms.storageTrieForSet[addr] = t
-		ms.storageTrieForSet[addr].TryUpdate(realKey, value)
+		t := ms.tryGetStorageTrie(addr, stateRoot, true)
+		t.TryUpdate(realKey, value)
 	case byte(1):
 		var stateR ethcmn.Hash
 		var err error
@@ -251,13 +255,12 @@ func (ms *MptStore) Delete(key []byte) {
 	if ms.prefetcher != nil {
 		ms.prefetcher.Used(ms.originalRoot, [][]byte{key})
 	}
-	
+
 	switch key[0] {
 	case keyPrefixStorageMpt[0]:
 		addr, stateRoot, realKey := decodeAddressStorageInfo(key)
-		t := ms.tryGetStorageTrie(addr, stateRoot)
-		ms.storageTrieForSet[addr] = t
-		ms.storageTrieForSet[addr].TryDelete(realKey)
+		t := ms.tryGetStorageTrie(addr, stateRoot, true)
+		t.TryDelete(realKey)
 	case byte(1):
 		err := ms.trie.TryDelete(key)
 		if err != nil {
