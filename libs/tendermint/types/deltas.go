@@ -3,6 +3,8 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trie"
+	"github.com/okex/exchain/libs/iavl"
 	"time"
 
 	"github.com/okex/exchain/libs/tendermint/crypto/tmhash"
@@ -43,6 +45,31 @@ var (
 	DownloadDelta = false
 	UploadDelta   = false
 )
+
+type TreeDelta struct {
+	IavlTreeDelta iavl.TreeDeltaMap
+	MptTreeDelta  trie.MptDeltaMap
+}
+
+func NewTreeDelta() *TreeDelta {
+	return &TreeDelta{
+		IavlTreeDelta: map[string]*iavl.TreeDelta{},
+		MptTreeDelta:  map[string]*trie.MptDelta{},
+	}
+}
+
+func (td *TreeDelta) Marshal() []byte {
+	cdc := amino.NewCodec()
+	return cdc.MustMarshalBinaryBare(td)
+}
+
+func (td *TreeDelta) Unmarshal(deltaBytes []byte) error {
+	cdc := amino.NewCodec()
+	if err := cdc.UnmarshalBinaryBare(deltaBytes, &td); err != nil {
+		return err
+	}
+	return nil
+}
 
 type DeltasMessage struct {
 	Metadata     []byte `json:"metadata"`

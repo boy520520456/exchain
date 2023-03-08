@@ -7,7 +7,6 @@ import (
 	"github.com/okex/exchain/libs/cosmos-sdk/store/listenkv"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/tracekv"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/types"
-	"github.com/okex/exchain/libs/iavl"
 	dbm "github.com/okex/exchain/libs/tm-db"
 
 	"github.com/okex/exchain/libs/cosmos-sdk/store/dbadapter"
@@ -24,7 +23,7 @@ type Store struct {
 	dbadapter.Store
 }
 
-func (s *Store) CommitterCommit(_ *iavl.TreeDelta) (_ types.CommitID, _ *iavl.TreeDelta) {
+func (s *Store) CommitterCommit(interface{}) (_ types.CommitID, _ interface{}) {
 	return
 }
 

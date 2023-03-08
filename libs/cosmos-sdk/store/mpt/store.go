@@ -2,6 +2,7 @@ package mpt
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/trie"
 	"io"
 	"sync"
 
@@ -240,7 +241,7 @@ func (ms *MptStore) ReverseIterator(start, end []byte) types.Iterator {
 /*
 *  implement CommitStore, CommitKVStore
  */
-func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iavl.TreeDelta) {
+func (ms *MptStore) CommitterCommit(inputDelta interface{}) (rootHash types.CommitID, outputDelta interface{}) {
 	ms.version++
 	fmt.Println("fsc:test================CommitterCommit:", ms.version)
 	// stop pre round prefetch
@@ -249,11 +250,16 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 	var root common.Hash
 	var err error
 	if applyDelta {
-		root, err = ms.trie.CommitWithDelta(nil, nil)
+		delta, ok := inputDelta.(*trie.MptDelta)
+		if !ok {
+			panic("wrong input delta of mpt")
+		}
+		root, err = ms.trie.CommitWithDelta(delta, nil)
+	} else if produceDelta {
+		root, outputDelta, err = ms.trie.CommitForDelta(nil)
 	} else {
 		root, err = ms.trie.Commit(nil)
 	}
-
 	if err != nil {
 		panic("fail to commit trie data: " + err.Error())
 	}
@@ -270,7 +276,7 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 	return types.CommitID{
 		Version: ms.version,
 		Hash:    root.Bytes(),
-	}, nil
+	}, outputDelta
 }
 
 func (ms *MptStore) LastCommitID() types.CommitID {

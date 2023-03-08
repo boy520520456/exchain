@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
+	"github.com/okex/exchain/libs/tendermint/types"
 	"io"
 
-	"github.com/okex/exchain/libs/iavl"
 	abci "github.com/okex/exchain/libs/tendermint/abci/types"
 	tmkv "github.com/okex/exchain/libs/tendermint/libs/kv"
 	"github.com/okex/exchain/libs/tendermint/libs/log"
@@ -23,7 +23,8 @@ type Store interface { //nolint
 
 // something that can persist to disk
 type Committer interface {
-	CommitterCommit(*iavl.TreeDelta) (CommitID, *iavl.TreeDelta) // CommitterCommit
+	CommitterCommit(interface{}) (CommitID, interface{}) // CommitterCommit
+	//CommitterCommit(*iavl.TreeDelta) (CommitID, *iavl.TreeDelta) // CommitterCommit
 	//for add module to init store version eg:ibc/erc20/capabilty module
 	SetUpgradeVersion(int64)
 
@@ -163,7 +164,7 @@ type CommitMultiStore interface {
 	Committer
 	MultiStore
 	CommitMultiStorePipeline
-	CommitterCommitMap(iavl.TreeDeltaMap) (CommitID, iavl.TreeDeltaMap) // CommitterCommit
+	CommitterCommitMap(*types.TreeDelta) (CommitID, *types.TreeDelta) // CommitterCommit
 
 	// Mount a store of type using the given db.
 	// If db == nil, the new store will use the CommitMultiStore db.

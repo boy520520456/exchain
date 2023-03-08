@@ -20,7 +20,6 @@ import (
 	"github.com/okex/exchain/libs/cosmos-sdk/types"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
-	"github.com/okex/exchain/libs/iavl"
 	"github.com/okex/exchain/libs/system/trace"
 	abci "github.com/okex/exchain/libs/tendermint/abci/types"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
@@ -297,10 +296,10 @@ func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 	app.commitBlockCache()
 	app.deliverState.ms.Write()
 
-	var input iavl.TreeDeltaMap
+	var input *tmtypes.TreeDelta
 	if tmtypes.DownloadDelta && req.DeltaMap != nil {
 		var ok bool
-		input, ok = req.DeltaMap.(iavl.TreeDeltaMap)
+		input, ok = req.DeltaMap.(*tmtypes.TreeDelta)
 		if !ok {
 			panic("use TreeDeltaMap failed")
 		}
