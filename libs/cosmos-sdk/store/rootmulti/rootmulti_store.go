@@ -1213,20 +1213,26 @@ func commitStores(version int64, storeMap map[types.StoreKey]types.CommitKVStore
 
 		var commitID types.CommitID
 		var outputDelta interface{}
-		if inputDelta == nil {
-			commitID, _ = store.CommitterCommit(nil) // CommitterCommit
-		} else {
+		if tmtypes.DownloadDelta && inputDelta != nil {
 			if store.GetStoreType() == types.StoreTypeMPT {
 				inputIavlMap := inputDelta.IavlTreeDelta
-				commitID, outputDelta = store.CommitterCommit(inputIavlMap[key.Name()]) // CommitterCommit
+				commitID, _ = store.CommitterCommit(inputIavlMap[key.Name()]) // CommitterCommit
+			} else if store.GetStoreType() == types.StoreTypeIAVL {
+				inputMptMap := inputDelta.MptTreeDelta
+				commitID, outputDelta = store.CommitterCommit(inputMptMap[key.Name()]) // CommitterCommit
+			} else {
+				commitID, _ = store.CommitterCommit(nil) // CommitterCommit
+			}
+		} else if tmtypes.UploadDelta {
+			if store.GetStoreType() == types.StoreTypeMPT {
+				commitID, outputDelta = store.CommitterCommit(nil) // CommitterCommit
 				outputMpt, ok := outputDelta.(*trie.MptDelta)
 				if !ok {
 					panic("produce mpt delta failed. key:" + key.Name())
 				}
 				outputDeltaMap.MptTreeDelta[key.Name()] = outputMpt
 			} else if store.GetStoreType() == types.StoreTypeIAVL {
-				inputMptMap := inputDelta.MptTreeDelta
-				commitID, outputDelta = store.CommitterCommit(inputMptMap[key.Name()]) // CommitterCommit
+				commitID, outputDelta = store.CommitterCommit(nil) // CommitterCommit
 				outputIavl, ok := outputDelta.(*iavltree.TreeDelta)
 				if !ok {
 					panic("produce iavl delta failed. key:" + key.Name())
@@ -1235,6 +1241,8 @@ func commitStores(version int64, storeMap map[types.StoreKey]types.CommitKVStore
 			} else {
 				commitID, _ = store.CommitterCommit(nil) // CommitterCommit
 			}
+		} else {
+			commitID, _ = store.CommitterCommit(nil) // CommitterCommit
 		}
 
 		if store.GetStoreType() == types.StoreTypeTransient {

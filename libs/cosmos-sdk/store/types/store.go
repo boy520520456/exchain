@@ -24,7 +24,6 @@ type Store interface { //nolint
 // something that can persist to disk
 type Committer interface {
 	CommitterCommit(interface{}) (CommitID, interface{}) // CommitterCommit
-	//CommitterCommit(*iavl.TreeDelta) (CommitID, *iavl.TreeDelta) // CommitterCommit
 	//for add module to init store version eg:ibc/erc20/capabilty module
 	SetUpgradeVersion(int64)
 

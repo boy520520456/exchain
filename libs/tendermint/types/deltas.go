@@ -51,6 +51,11 @@ type TreeDelta struct {
 	MptTreeDelta  trie.MptDeltaMap
 }
 
+type TreeDeltaImp struct {
+	IavlBytes []byte
+	MptBytes  []byte
+}
+
 func NewTreeDelta() *TreeDelta {
 	return &TreeDelta{
 		IavlTreeDelta: map[string]*iavl.TreeDelta{},
@@ -60,14 +65,20 @@ func NewTreeDelta() *TreeDelta {
 
 func (td *TreeDelta) Marshal() []byte {
 	cdc := amino.NewCodec()
-	return cdc.MustMarshalBinaryBare(td)
+	iavlBytes, _ := td.IavlTreeDelta.MarshalToAmino(cdc)
+	mptBytes := td.MptTreeDelta.Marshal()
+	tdi := &TreeDeltaImp{IavlBytes: iavlBytes, MptBytes: mptBytes}
+	return cdc.MustMarshalBinaryBare(tdi)
 }
 
 func (td *TreeDelta) Unmarshal(deltaBytes []byte) error {
 	cdc := amino.NewCodec()
-	if err := cdc.UnmarshalBinaryBare(deltaBytes, &td); err != nil {
+	tdi := &TreeDeltaImp{}
+	if err := cdc.UnmarshalBinaryBare(deltaBytes, &tdi); err != nil {
 		return err
 	}
+	_ = td.IavlTreeDelta.UnmarshalFromAmino(cdc, tdi.IavlBytes)
+	_ = td.MptTreeDelta.Unmarshal(tdi.MptBytes)
 	return nil
 }
 
