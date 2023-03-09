@@ -1215,11 +1215,11 @@ func commitStores(version int64, storeMap map[types.StoreKey]types.CommitKVStore
 		var outputDelta interface{}
 		if tmtypes.DownloadDelta && inputDelta != nil {
 			if store.GetStoreType() == types.StoreTypeMPT {
-				inputIavlMap := inputDelta.IavlTreeDelta
-				commitID, _ = store.CommitterCommit(inputIavlMap[key.Name()]) // CommitterCommit
-			} else if store.GetStoreType() == types.StoreTypeIAVL {
 				inputMptMap := inputDelta.MptTreeDelta
 				commitID, outputDelta = store.CommitterCommit(inputMptMap[key.Name()]) // CommitterCommit
+			} else if store.GetStoreType() == types.StoreTypeIAVL {
+				inputIavlMap := inputDelta.IavlTreeDelta
+				commitID, _ = store.CommitterCommit(inputIavlMap[key.Name()]) // CommitterCommit
 			} else {
 				commitID, _ = store.CommitterCommit(nil) // CommitterCommit
 			}

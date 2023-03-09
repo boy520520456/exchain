@@ -10,7 +10,7 @@ func unmarshalTreeDeltaMap(input []byte) (interface{}, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("failed unmarshal TreeDeltaMap: empty data")
 	}
-	treeDeltaMap := &types.TreeDelta{}
+	treeDeltaMap := types.NewTreeDelta()
 	err := treeDeltaMap.Unmarshal(input)
 	return treeDeltaMap, err
 }
