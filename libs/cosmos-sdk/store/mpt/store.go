@@ -257,10 +257,10 @@ func (ms *MptStore) CommitterCommit(inputDelta interface{}) (rootHash types.Comm
 
 	var root common.Hash
 	var err error
-	if applyDelta {
+	if applyDelta && inputDelta != nil {
 		delta, ok := inputDelta.(*trie.MptDelta)
 		if !ok {
-			panic("wrong input delta of mpt")
+			panic(fmt.Sprintf("wrong input delta of mpt. delta: %v", inputDelta))
 		}
 		root, err = ms.trie.CommitWithDelta(delta, nil)
 	} else if produceDelta {
