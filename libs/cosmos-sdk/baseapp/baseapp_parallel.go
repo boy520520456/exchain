@@ -139,6 +139,9 @@ func (app *BaseApp) calGroup() {
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
+		if index == 1767 || index == 1771 {
+			fmt.Println("tx", index, tx.from, tx.to)
+		}
 	}
 
 	addrToID := make(map[string]int, 0)
