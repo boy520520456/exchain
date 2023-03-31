@@ -128,20 +128,17 @@ func (app *BaseApp) calGroup() {
 	para := app.parallelTxManage
 
 	rootAddr = make(map[string]string, 0)
-	cosmosTxIndexInBlock := 0
+	para.cosmosTxInBlock = 0
 	for index, tx := range para.extraTxsInfo {
 		if tx.isEvm { //evmTx
 			Union(tx.from, tx.to)
 		} else {
-			cosmosTxIndexInBlock++
-			para.extraTxsInfo[index].cosmosTxIndexInBlock = cosmosTxIndexInBlock
+			para.cosmosTxInBlock++
+			para.extraTxsInfo[index].cosmosTxIndexInBlock = para.cosmosTxInBlock
 
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
-		//if index == 1767 || index == 1771 {
-		//	fmt.Println("tx", index, tx.from, tx.to, tx.stdTx.GetMsgs()[0])
-		//}
 	}
 
 	addrToID := make(map[string]int, 0)
@@ -305,7 +302,8 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	app.txCountFix(ctx, 1999)
+	fmt.Println("fuckkkkkk", app.parallelTxManage.cosmosTxInBlock)
+	app.txCountFix(ctx, app.parallelTxManage.cosmosTxInBlock)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
@@ -444,6 +442,7 @@ type parallelTxManager struct {
 	txs                 [][]byte
 	txSize              int
 	alreadyEnd          bool
+	cosmosTxInBlock     int
 
 	resultCh chan int
 	resultCb func(data int)
