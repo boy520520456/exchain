@@ -678,6 +678,9 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 
 		for key, value := range rw.Read {
 			if data, ok := pm.conflictCheck[storeKey].Write[key]; ok {
+				if hex.EncodeToString([]byte(key)) == "01f1829676db577682e944fc3493d451b67ff3e29f" {
+					continue
+				}
 				if !bytes.Equal(data.Value, value) {
 					fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", value, "writeValue", hex.EncodeToString(data.Value))
 					return true
