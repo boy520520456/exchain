@@ -140,7 +140,7 @@ func (app *BaseApp) calGroup() {
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
 		if index == 1767 || index == 1771 {
-			fmt.Println("tx", index, tx.from, tx.to)
+			fmt.Println("tx", index, tx.from, tx.to, tx.stdTx.GetMsgs()[0])
 		}
 	}
 
