@@ -693,6 +693,8 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 				}
 				if !bytes.Equal(data.Value, value) {
 					fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", hex.EncodeToString(value), "writeValue", hex.EncodeToString(data.Value))
+					fmt.Println("currReadIndex", e.counter, "writeIndex", data.Index)
+					panic("sb")
 					return true
 				}
 			}
@@ -794,6 +796,7 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 			} else {
 				ms.Set([]byte(key), value.Value)
 			}
+			value.Index = txIndex
 			pm.conflictCheck[storeKey].Write[key] = value
 		}
 	}

@@ -423,6 +423,7 @@ type MultiStorePersistentCache interface {
 type DirtyValue struct {
 	Deleted bool
 	Value   []byte
+	Index   int
 }
 type CacheKVRWSet struct {
 	Read  map[string][]byte
