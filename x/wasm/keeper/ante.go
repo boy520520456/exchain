@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	types2 "github.com/okex/exchain/libs/tendermint/types"
 
@@ -49,6 +50,7 @@ func (a CountTXDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, 
 	}
 	// store next counter value for current height
 	store.Set(types.TXCounterPrefix, encodeHeightCounter(currentHeight, txCounter+1))
+	fmt.Println("SSSSSSSSS", currentHeight, txCounter)
 
 	ctx.SetGasMeter(currentGasmeter)
 	return next(types.WithTXCounter(ctx, txCounter), tx, simulate)
@@ -105,4 +107,11 @@ func (d LimitSimulationGasDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		return next(*newCtx, tx, simulate)
 	}
 	return next(ctx, tx, simulate)
+}
+
+func FixCount(ctx sdk.Context, storeKey sdk.StoreKey, txCount int) {
+	store := ctx.KVStore(storeKey)
+	currentHeight := ctx.BlockHeight()
+	fmt.Println("settttt", currentHeight, txCount)
+	store.Set(types.TXCounterPrefix, encodeHeightCounter(currentHeight, uint32(txCount+1)))
 }

@@ -1,6 +1,7 @@
 package app
 
 import (
+	wasmkeeper "github.com/okex/exchain/x/wasm/keeper"
 	"sort"
 	"strings"
 
@@ -44,6 +45,12 @@ func updateFeeCollectorHandler(bk bank.Keeper, sk supply.Keeper) sdk.UpdateFeeCo
 func fixLogForParallelTxHandler(ek *evm.Keeper) sdk.LogFix {
 	return func(tx []sdk.Tx, logIndex []int, hasEnterEvmTx []bool, anteErrs []error, resp []abci.ResponseDeliverTx) (logs [][]byte) {
 		return ek.FixLog(tx, logIndex, hasEnterEvmTx, anteErrs, resp)
+	}
+}
+
+func fixWasmIndexForParallelTx(storeKey sdk.StoreKey) sdk.UpdateTxCount {
+	return func(ctx sdk.Context, txCount int) {
+		wasmkeeper.FixCount(ctx, storeKey, txCount)
 	}
 }
 
@@ -119,7 +126,7 @@ func getTxFeeAndFromHandler(ak auth.AccountKeeper) sdk.GetTxFeeAndFromHandler {
 					canParaTx = true
 				}
 			}
-			
+
 		}
 		return
 	}

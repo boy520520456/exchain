@@ -22,12 +22,13 @@ var (
 )
 
 type extraDataForTx struct {
-	fee       sdk.Coins
-	isEvm     bool
-	from      string
-	to        string
-	stdTx     sdk.Tx
-	decodeErr error
+	fee                  sdk.Coins
+	isEvm                bool
+	from                 string
+	to                   string
+	stdTx                sdk.Tx
+	decodeErr            error
+	cosmosTxIndexInBlock int
 }
 
 type txWithIndex struct {
@@ -126,10 +127,14 @@ func (app *BaseApp) calGroup() {
 	para := app.parallelTxManage
 
 	rootAddr = make(map[string]string, 0)
+	cosmosTxIndexInBlock := 0
 	for index, tx := range para.extraTxsInfo {
 		if tx.isEvm { //evmTx
 			Union(tx.from, tx.to)
 		} else {
+			cosmosTxIndexInBlock++
+			para.extraTxsInfo[index].cosmosTxIndexInBlock = cosmosTxIndexInBlock
+
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
@@ -289,6 +294,11 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	app.feeChanged = true
 	app.feeCollector = app.parallelTxManage.currTxFee
 	receiptsLogs := app.endParallelTxs(pm.txSize)
+
+	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
+	ctx.SetMultiStore(app.parallelTxManage.cms)
+
+	//app.txCountFix(ctx, 2000)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v

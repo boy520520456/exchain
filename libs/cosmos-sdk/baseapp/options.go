@@ -177,6 +177,9 @@ func (app *BaseApp) SetParallelTxLogHandlers(fixLog sdk.LogFix) {
 	app.logFix = fixLog
 }
 
+func (app *BaseApp) SetFixTxount(d sdk.UpdateTxCount) {
+	app.txCountFix = d
+}
 func (app *BaseApp) SetEvmWatcherCollector(collector sdk.EvmWatcherCollector) {
 	if app.sealed {
 		panic("SetEvmWatcherCollector() on sealed BaseApp")
