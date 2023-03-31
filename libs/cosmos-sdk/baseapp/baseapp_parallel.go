@@ -131,7 +131,7 @@ func (app *BaseApp) calGroup() {
 	rootAddr = make(map[string]string, 0)
 	para.cosmosTxInBlock = 0
 	for index, tx := range para.extraTxsInfo {
-		if tx.supportPara { //evmTx
+		if tx.supportPara { //evmTx && wasmTx
 			Union(tx.from, tx.to)
 		}
 		if !tx.isEvm {
@@ -301,7 +301,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	app.txCountFix(ctx, app.parallelTxManage.cosmosTxInBlock-1)
+	app.updateCosmosTxCount(ctx, app.parallelTxManage.cosmosTxInBlock-1)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
@@ -796,7 +796,6 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 			} else {
 				ms.Set([]byte(key), value.Value)
 			}
-			value.Index = txIndex
 			pm.conflictCheck[storeKey].Write[key] = value
 		}
 	}

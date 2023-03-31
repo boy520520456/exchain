@@ -48,9 +48,9 @@ func fixLogForParallelTxHandler(ek *evm.Keeper) sdk.LogFix {
 	}
 }
 
-func fixWasmIndexForParallelTx(storeKey sdk.StoreKey) sdk.UpdateTxCount {
+func fixCosmosTxCountInWasmForParallelTx(storeKey sdk.StoreKey) sdk.UpdateCosmosTxCount {
 	return func(ctx sdk.Context, txCount int) {
-		wasmkeeper.FixCount(ctx, storeKey, txCount)
+		wasmkeeper.UpdateTxCount(ctx, storeKey, txCount)
 	}
 }
 
