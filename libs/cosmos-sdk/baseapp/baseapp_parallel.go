@@ -699,8 +699,8 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 						fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", hex.EncodeToString(value), "writeValue", hex.EncodeToString(data.Value))
 						fmt.Println("currReadIndex", e.counter, "writeIndex", data.Index)
 
-						fmt.Println("curr", e.counter, pm.extraTxsInfo[e.counter].stdTx.GetMsgs()[0])
-						fmt.Println("writeIndex", data.Index, pm.extraTxsInfo[data.Index].stdTx.GetMsgs()[0])
+						fmt.Println("curr", e.counter, pm.extraTxsInfo[e.counter].to, pm.extraTxsInfo[e.counter].stdTx.GetMsgs())
+						fmt.Println("writeIndex", data.Index, pm.extraTxsInfo[data.Index].to, pm.extraTxsInfo[data.Index].stdTx.GetMsgs())
 						panic("sb")
 					}
 					return true
