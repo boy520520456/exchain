@@ -3,7 +3,6 @@ package baseapp
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"runtime"
 	"sync"
 
@@ -302,9 +301,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	fmt.Println("fuckkkkkk", app.parallelTxManage.cosmosTxInBlock-1)
 	app.txCountFix(ctx, app.parallelTxManage.cosmosTxInBlock-1)
-	//app.txCountFix(ctx, 1999)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
