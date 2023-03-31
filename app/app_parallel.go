@@ -48,9 +48,9 @@ func fixLogForParallelTxHandler(ek *evm.Keeper) sdk.LogFix {
 	}
 }
 
-func fixWasmIndexForParallelTx(storeKey sdk.StoreKey) sdk.UpdateTxCount {
+func updateWasmTxCountForParallelTx(storeKey sdk.StoreKey) sdk.UpdateWasmTxCount {
 	return func(ctx sdk.Context, txCount int) {
-		wasmkeeper.FixCount(ctx, storeKey, txCount)
+		wasmkeeper.UpdateTxCountInStore(ctx, storeKey, txCount)
 	}
 }
 
@@ -103,9 +103,9 @@ func getTxFeeHandler() sdk.GetTxFeeHandler {
 
 // getTxFeeAndFromHandler get tx fee and from
 func getTxFeeAndFromHandler(ak auth.AccountKeeper) sdk.GetTxFeeAndFromHandler {
-	return func(ctx sdk.Context, tx sdk.Tx) (fee sdk.Coins, canParaTx bool, from string, to string, err error) {
+	return func(ctx sdk.Context, tx sdk.Tx) (fee sdk.Coins, supportParaTx bool, from string, to string, err error) {
 		if evmTx, ok := tx.(*evmtypes.MsgEthereumTx); ok {
-			canParaTx = true
+			supportParaTx = true
 			err = evmTxVerifySigHandler(ctx.ChainID(), ctx.BlockHeight(), evmTx)
 			if err != nil {
 				return
@@ -123,7 +123,7 @@ func getTxFeeAndFromHandler(ak auth.AccountKeeper) sdk.GetTxFeeAndFromHandler {
 			if stdTx, ok := tx.(*auth.StdTx); ok && len(stdTx.Msgs) == 1 { // only support one message
 				if msg, ok := stdTx.Msgs[0].(interface{ CalFromAndToForPara() (string, string) }); ok {
 					from, to = msg.CalFromAndToForPara()
-					canParaTx = true
+					supportParaTx = true
 				}
 			}
 

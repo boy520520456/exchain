@@ -3,7 +3,6 @@ package baseapp
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"runtime"
 	"sync"
 
@@ -128,20 +127,17 @@ func (app *BaseApp) calGroup() {
 	para := app.parallelTxManage
 
 	rootAddr = make(map[string]string, 0)
-	cosmosTxIndexInBlock := 0
+	para.stdTxCount = 0
 	for index, tx := range para.extraTxsInfo {
 		if tx.isEvm { //evmTx
 			Union(tx.from, tx.to)
 		} else {
-			cosmosTxIndexInBlock++
-			para.extraTxsInfo[index].cosmosTxIndexInBlock = cosmosTxIndexInBlock
+			para.stdTxCount++
+			para.extraTxsInfo[index].cosmosTxIndexInBlock = para.stdTxCount
 
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
-		//if index == 1767 || index == 1771 {
-		//	fmt.Println("tx", index, tx.from, tx.to, tx.stdTx.GetMsgs()[0])
-		//}
 	}
 
 	addrToID := make(map[string]int, 0)
@@ -172,9 +168,6 @@ func (app *BaseApp) calGroup() {
 				app.parallelTxManage.preTxInGroup[list[index]] = list[index-1]
 			}
 		}
-	}
-	for index := 0; index < len(para.groupList); index++ {
-		fmt.Println("--", para.groupList[index])
 	}
 }
 
@@ -304,8 +297,8 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
+	app.updateWasmTxCount(ctx, app.parallelTxManage.stdTxCount)
 
-	app.txCountFix(ctx, 1999)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
@@ -444,6 +437,7 @@ type parallelTxManager struct {
 	txs                 [][]byte
 	txSize              int
 	alreadyEnd          bool
+	stdTxCount          int
 
 	resultCh chan int
 	resultCb func(data int)
@@ -698,14 +692,6 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 					continue
 				}
 				if !bytes.Equal(data.Value, value) {
-					if hex.EncodeToString([]byte(key)) == "033334da141ec6287578594a1876b507cbbbfac3959cdebd7b26d3adb4d9914094000762616c616e63656578313776676e643668716c333336396e3067757279666e6732786132766d743476327273376e6435727079723834713768756c796b7377636d336b61" {
-						fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", hex.EncodeToString(value), "writeValue", hex.EncodeToString(data.Value))
-						fmt.Println("currReadIndex", e.counter, "writeIndex", data.Index)
-
-						fmt.Println("curr", e.counter, pm.extraTxsInfo[e.counter].to, pm.extraTxsInfo[e.counter].stdTx.GetMsgs())
-						fmt.Println("writeIndex", data.Index, pm.extraTxsInfo[data.Index].to, pm.extraTxsInfo[data.Index].stdTx.GetMsgs())
-						panic("sb")
-					}
 					return true
 				}
 			}
@@ -807,7 +793,7 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 			} else {
 				ms.Set([]byte(key), value.Value)
 			}
-			value.Index = txIndex
+
 			pm.conflictCheck[storeKey].Write[key] = value
 		}
 	}

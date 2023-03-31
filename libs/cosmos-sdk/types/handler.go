@@ -22,7 +22,7 @@ type AccNonceHandler func(ctx Context, address AccAddress) (nonce uint64)
 type EvmSysContractAddressHandler func(ctx Context, addr AccAddress) bool
 
 type UpdateFeeCollectorAccHandler func(ctx Context, balance Coins, txFeesplit []*FeeSplitInfo) error
-type UpdateTxCount func(ctx Context, txCount int)
+type UpdateWasmTxCount func(ctx Context, txCount int)
 
 type LogFix func(tx []Tx, logIndex []int, hasEnterEvmTx []bool, errs []error, resp []abci.ResponseDeliverTx) (logs [][]byte)
 type UpdateFeeSplitHandler func(txHash common.Hash, addr AccAddress, fee Coins, isDelete bool)

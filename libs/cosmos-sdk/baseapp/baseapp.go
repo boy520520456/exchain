@@ -149,7 +149,7 @@ type BaseApp struct { // nolint: maligned
 
 	updateFeeCollectorAccHandler sdk.UpdateFeeCollectorAccHandler
 	logFix                       sdk.LogFix
-	txCountFix                   sdk.UpdateTxCount
+	updateWasmTxCount            sdk.UpdateWasmTxCount
 
 	getTxFeeAndFromHandler sdk.GetTxFeeAndFromHandler
 	getTxFeeHandler        sdk.GetTxFeeHandler
