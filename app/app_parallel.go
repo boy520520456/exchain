@@ -2,6 +2,8 @@ package app
 
 import (
 	"encoding/hex"
+	"fmt"
+	ethcmn "github.com/ethereum/go-ethereum/common"
 	"sort"
 	"strings"
 
@@ -20,6 +22,7 @@ import (
 // feeCollectorHandler set or get the value of feeCollectorAcc
 func updateFeeCollectorHandler(bk bank.Keeper, sk supply.Keeper) sdk.UpdateFeeCollectorAccHandler {
 	return func(ctx sdk.Context, balance sdk.Coins, txFeesplit []*sdk.FeeSplitInfo) error {
+		fmt.Println("fck", ethcmn.BytesToAddress(sk.GetModuleAccount(ctx, auth.FeeCollectorName).GetAddress()).String())
 		err := bk.SetCoins(ctx, sk.GetModuleAccount(ctx, auth.FeeCollectorName).GetAddress(), balance)
 		if err != nil {
 			return err
