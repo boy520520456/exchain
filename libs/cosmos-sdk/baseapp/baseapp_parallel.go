@@ -298,7 +298,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	//app.txCountFix(ctx, 2000)
+	app.txCountFix(ctx, 1999)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
@@ -687,7 +687,7 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 
 		for key, value := range rw.Read {
 			if data, ok := pm.conflictCheck[storeKey].Write[key]; ok {
-				if hex.EncodeToString([]byte(key)) == "01f1829676db577682e944fc3493d451b67ff3e29f" {
+				if hex.EncodeToString([]byte(key)) == "01f1829676db577682e944fc3493d451b67ff3e29f" || hex.EncodeToString([]byte(key)) == "08" {
 					continue
 				}
 				if !bytes.Equal(data.Value, value) {

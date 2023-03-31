@@ -50,7 +50,7 @@ func (a CountTXDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, 
 	}
 	// store next counter value for current height
 	store.Set(types.TXCounterPrefix, encodeHeightCounter(currentHeight, txCounter+1))
-	fmt.Println("SSSSSSSSS", currentHeight, txCounter)
+	//fmt.Println("SSSSSSSSS", currentHeight, txCounter)
 
 	ctx.SetGasMeter(currentGasmeter)
 	return next(types.WithTXCounter(ctx, txCounter), tx, simulate)
