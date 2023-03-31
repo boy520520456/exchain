@@ -173,6 +173,9 @@ func (app *BaseApp) calGroup() {
 			}
 		}
 	}
+	for index := 0; index < len(para.groupList); index++ {
+		fmt.Println("--", para.groupList[index])
+	}
 }
 
 // ParallelTxs run txs
