@@ -2,6 +2,8 @@ package baseapp
 
 import (
 	"bytes"
+	"encoding/hex"
+	"fmt"
 	"runtime"
 	"sync"
 
@@ -334,8 +336,8 @@ func (app *BaseApp) endParallelTxs(txSize int) [][]byte {
 	return app.logFix(txs, logIndex, hasEnterEvmTx, errs, resp)
 }
 
-//we reuse the nonce that changed by the last async call
-//if last ante handler has been failed, we need rerun it ? or not?
+// we reuse the nonce that changed by the last async call
+// if last ante handler has been failed, we need rerun it ? or not?
 func (app *BaseApp) deliverTxWithCache(txIndex int) *executeResult {
 	app.parallelTxManage.currentRerunIndex = txIndex
 	defer func() {
@@ -773,6 +775,7 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 
 		ms := pm.cms.GetKVStore(storeKey)
 		for key, value := range rw.Write {
+			fmt.Println("set write", hex.EncodeToString([]byte(key)), hex.EncodeToString(value.Value))
 			if value.Deleted {
 				ms.Delete([]byte(key))
 			} else {
