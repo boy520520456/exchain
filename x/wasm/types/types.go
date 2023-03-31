@@ -129,10 +129,11 @@ func (c *ContractInfo) SetExtension(ext ContractInfoExtension) error {
 
 // ReadExtension copies the extension value to the pointer passed as argument so that there is no need to cast
 // For example with a custom extension of type `MyContractDetails` it will look as following:
-// 		var d MyContractDetails
-//		if err := info.ReadExtension(&d); err != nil {
-//			return nil, sdkerrors.Wrap(err, "extension")
-//		}
+//
+//	var d MyContractDetails
+//	if err := info.ReadExtension(&d); err != nil {
+//		return nil, sdkerrors.Wrap(err, "extension")
+//	}
 func (c *ContractInfo) ReadExtension(e ContractInfoExtension) error {
 	rv := reflect.ValueOf(e)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
@@ -274,9 +275,14 @@ func NewEnv(ctx sdk.Context, contractAddr sdk.AccAddress) wasmvmtypes.Env {
 			Address: contractAddr.String(),
 		},
 	}
-	if txCounter, ok := TXCounter(ctx); ok {
-		env.Transaction = &wasmvmtypes.TransactionInfo{Index: txCounter}
+	if ctx.ParaMsg() != nil {
+		env.Transaction = &wasmvmtypes.TransactionInfo{Index: uint32(ctx.ParaMsg().CosmosIndexInBlock)}
+	} else {
+		if txCounter, ok := TXCounter(ctx); ok {
+			env.Transaction = &wasmvmtypes.TransactionInfo{Index: txCounter}
+		}
 	}
+
 	return env
 }
 

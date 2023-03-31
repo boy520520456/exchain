@@ -22,14 +22,13 @@ var (
 )
 
 type extraDataForTx struct {
-	supportPara          bool
-	fee                  sdk.Coins
-	isEvm                bool
-	from                 string
-	to                   string
-	stdTx                sdk.Tx
-	decodeErr            error
-	cosmosTxIndexInBlock int
+	supportPara bool
+	fee         sdk.Coins
+	isEvm       bool
+	from        string
+	to          string
+	stdTx       sdk.Tx
+	decodeErr   error
 }
 
 type txWithIndex struct {
@@ -129,14 +128,14 @@ func (app *BaseApp) calGroup() {
 	para := app.parallelTxManage
 
 	rootAddr = make(map[string]string, 0)
-	para.cosmosTxInBlock = 0
+	para.cosmosTxIndexInBlock = 0
 	for index, tx := range para.extraTxsInfo {
 		if tx.supportPara { //evmTx && wasmTx
 			Union(tx.from, tx.to)
 		}
 		if !tx.isEvm {
-			para.cosmosTxInBlock++
-			para.extraTxsInfo[index].cosmosTxIndexInBlock = para.cosmosTxInBlock
+			para.cosmosTxIndexInBlock++
+			para.txByteMpCosmosIndex[string(para.txs[index])] = para.cosmosTxIndexInBlock
 
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
@@ -301,7 +300,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	app.updateCosmosTxCount(ctx, app.parallelTxManage.cosmosTxInBlock-1)
+	app.updateCosmosTxCount(ctx, app.parallelTxManage.cosmosTxIndexInBlock-1)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
 			pm.deliverTxs[index].Data = v
@@ -432,15 +431,16 @@ func newExecuteResult(r abci.ResponseDeliverTx, ms sdk.CacheMultiStore, counter 
 }
 
 type parallelTxManager struct {
-	blockHeight         int64
-	groupTasks          []*groupTask
-	blockGasMeterMu     sync.Mutex
-	haveCosmosTxInBlock bool
-	isAsyncDeliverTx    bool
-	txs                 [][]byte
-	txSize              int
-	alreadyEnd          bool
-	cosmosTxInBlock     int
+	blockHeight          int64
+	groupTasks           []*groupTask
+	blockGasMeterMu      sync.Mutex
+	haveCosmosTxInBlock  bool
+	isAsyncDeliverTx     bool
+	txs                  [][]byte
+	txSize               int
+	alreadyEnd           bool
+	cosmosTxIndexInBlock int
+	txByteMpCosmosIndex  map[string]int
 
 	resultCh chan int
 	resultCb func(data int)
@@ -757,6 +757,7 @@ func (pm *parallelTxManager) init(txs [][]byte, blockHeight int64, deliverStateM
 		pm.resultCh = make(chan int, txSize)
 	}
 
+	pm.txByteMpCosmosIndex = make(map[string]int, 0)
 	pm.nextTxInGroup = make(map[int]int)
 
 	pm.extraTxsInfo = make([]*extraDataForTx, txSize)
