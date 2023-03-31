@@ -302,7 +302,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	ctx, _ := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	ctx.SetMultiStore(app.parallelTxManage.cms)
 
-	fmt.Println("fuckkkkkk", app.parallelTxManage.cosmosTxInBlock)
+	fmt.Println("fuckkkkkk", app.parallelTxManage.cosmosTxInBlock-1)
 	app.txCountFix(ctx, app.parallelTxManage.cosmosTxInBlock)
 	for index, v := range receiptsLogs {
 		if len(v) != 0 { // only update evm tx result
