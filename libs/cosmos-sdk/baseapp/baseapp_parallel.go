@@ -776,7 +776,7 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 		ms := pm.cms.GetKVStore(storeKey)
 		for key, value := range rw.Write {
 			//fmt.Println("set write", hex.EncodeToString([]byte(key)), hex.EncodeToString(value.Value))
-			if hex.EncodeToString([]byte(key)) == "01f186c4bb3494d1d7e154aec52a52d989258d1e6d" {
+			if hex.EncodeToString([]byte(key)) == "0xf1829676DB577682E944fc3493d451B67Ff3E29F" {
 				fmt.Println("fuckkkk", txIndex)
 			}
 			if value.Deleted {
