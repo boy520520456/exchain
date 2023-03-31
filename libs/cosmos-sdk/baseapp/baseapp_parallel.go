@@ -698,14 +698,6 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 					continue
 				}
 				if !bytes.Equal(data.Value, value) {
-					if hex.EncodeToString([]byte(key)) == "033334da141ec6287578594a1876b507cbbbfac3959cdebd7b26d3adb4d9914094000762616c616e63656578313776676e643668716c333336396e3067757279666e6732786132766d743476327273376e6435727079723834713768756c796b7377636d336b61" {
-						fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", hex.EncodeToString(value), "writeValue", hex.EncodeToString(data.Value))
-						fmt.Println("currReadIndex", e.counter, "writeIndex", data.Index)
-
-						fmt.Println("curr", e.counter, pm.extraTxsInfo[e.counter].to, pm.extraTxsInfo[e.counter].stdTx.GetMsgs())
-						fmt.Println("writeIndex", data.Index, pm.extraTxsInfo[data.Index].to, pm.extraTxsInfo[data.Index].stdTx.GetMsgs())
-						panic("sb")
-					}
 					return true
 				}
 			}
