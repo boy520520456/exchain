@@ -2,8 +2,6 @@ package baseapp
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
 	"runtime"
 	"sync"
 
@@ -775,7 +773,7 @@ func (pm *parallelTxManager) SetCurrentIndex(txIndex int, res *executeResult) {
 
 		ms := pm.cms.GetKVStore(storeKey)
 		for key, value := range rw.Write {
-			fmt.Println("set write", hex.EncodeToString([]byte(key)), hex.EncodeToString(value.Value))
+			//fmt.Println("set write", hex.EncodeToString([]byte(key)), hex.EncodeToString(value.Value))
 			if value.Deleted {
 				ms.Delete([]byte(key))
 			} else {

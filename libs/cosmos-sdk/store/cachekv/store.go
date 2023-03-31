@@ -2,9 +2,12 @@ package cachekv
 
 import (
 	"bytes"
+	"encoding/hex"
+	"fmt"
 	"io"
 	"reflect"
 	"sort"
+	"strings"
 	"sync"
 	"unsafe"
 
@@ -369,6 +372,9 @@ func (store *Store) dirtyItems(start, end []byte) {
 
 // Only entrypoint to mutate store.cache.
 func (store *Store) setCacheValue(key, value []byte, deleted bool, dirty bool) {
+	if strings.HasPrefix(hex.EncodeToString(key), "01f18") {
+		fmt.Println("SSSSSS", hex.EncodeToString(key), hex.EncodeToString(value))
+	}
 	keyStr := string(key)
 	if !dirty {
 		store.readList[keyStr] = value
