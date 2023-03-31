@@ -692,7 +692,7 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 					continue
 				}
 				if !bytes.Equal(data.Value, value) {
-					fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", value, "writeValue", hex.EncodeToString(data.Value))
+					fmt.Println("isConflict", hex.EncodeToString([]byte(key)), "readValue", hex.EncodeToString(value), "writeValue", hex.EncodeToString(data.Value))
 					return true
 				}
 			}
