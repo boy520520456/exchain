@@ -127,7 +127,7 @@ func (app *BaseApp) calGroup() {
 	para := app.parallelTxManage
 
 	rootAddr = make(map[string]string, 0)
-	para.stdTxCount = 0
+	para.stdTxCount = -1
 	for index, tx := range para.extraTxsInfo {
 		if tx.isEvm { //evmTx
 			Union(tx.from, tx.to)
