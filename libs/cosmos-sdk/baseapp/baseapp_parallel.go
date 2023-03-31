@@ -2,6 +2,7 @@ package baseapp
 
 import (
 	"bytes"
+	"fmt"
 	"runtime"
 	"sync"
 
@@ -695,6 +696,7 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 				//	continue
 				//}
 				if !bytes.Equal(data.Value, value) {
+					fmt.Println("kkkk", key)
 					return true
 				}
 			}

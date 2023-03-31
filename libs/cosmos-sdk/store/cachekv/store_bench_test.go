@@ -2,6 +2,7 @@ package cachekv_test
 
 import (
 	"crypto/rand"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -11,6 +12,11 @@ import (
 	"github.com/okex/exchain/libs/cosmos-sdk/store/dbadapter"
 )
 
+func TestA(t *testing.T) {
+	ss := "01f1829676db577682e944fc3493d451b67ff3e29f"
+	fmt.Println("", string([]byte(ss)))
+	fmt.Println("", ss)
+}
 func benchmarkCacheKVStoreIterator(numKVs int, b *testing.B) {
 	mem := dbadapter.Store{DB: dbm.NewMemDB()}
 	cstore := cachekv.NewStore(mem)
