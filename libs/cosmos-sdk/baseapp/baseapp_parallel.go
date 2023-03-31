@@ -23,6 +23,7 @@ var (
 )
 
 type extraDataForTx struct {
+	supportPara          bool
 	fee                  sdk.Coins
 	isEvm                bool
 	from                 string
@@ -69,13 +70,14 @@ func (app *BaseApp) getExtraDataByTxs(txs [][]byte) {
 					app.blockDataCache.SetTx(txBytes, tx)
 				}
 
-				coin, isEvm, s, toAddr, _ := app.getTxFeeAndFromHandler(app.getContextForTx(runTxModeDeliver, txBytes), tx)
+				coin, isEvm, s, toAddr, _, supportPara := app.getTxFeeAndFromHandler(app.getContextForTx(runTxModeDeliver, txBytes), tx)
 				para.extraTxsInfo[index] = &extraDataForTx{
-					fee:   coin,
-					isEvm: isEvm,
-					from:  s,
-					to:    toAddr,
-					stdTx: tx,
+					supportPara: supportPara,
+					fee:         coin,
+					isEvm:       isEvm,
+					from:        s,
+					to:          toAddr,
+					stdTx:       tx,
 				}
 				wg.Done()
 			}
@@ -130,9 +132,10 @@ func (app *BaseApp) calGroup() {
 	rootAddr = make(map[string]string, 0)
 	para.cosmosTxInBlock = 0
 	for index, tx := range para.extraTxsInfo {
-		if tx.isEvm { //evmTx
+		if tx.supportPara { //evmTx
 			Union(tx.from, tx.to)
-		} else {
+		}
+		if !tx.isEvm {
 			para.cosmosTxInBlock++
 			para.extraTxsInfo[index].cosmosTxIndexInBlock = para.cosmosTxInBlock
 
@@ -144,7 +147,7 @@ func (app *BaseApp) calGroup() {
 	addrToID := make(map[string]int, 0)
 
 	for index, txInfo := range para.extraTxsInfo {
-		if !txInfo.isEvm {
+		if !txInfo.supportPara {
 			continue
 		}
 		rootAddr := Find(txInfo.from)
@@ -169,9 +172,6 @@ func (app *BaseApp) calGroup() {
 				app.parallelTxManage.preTxInGroup[list[index]] = list[index-1]
 			}
 		}
-	}
-	for index := 0; index < len(para.groupList); index++ {
-		fmt.Println("--", para.groupList[index])
 	}
 }
 
@@ -239,7 +239,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 				rerunIdx++
 				isReRun = true
 				// conflict rerun tx
-				if !pm.extraTxsInfo[pm.upComingTxIndex].isEvm {
+				if !pm.extraTxsInfo[pm.upComingTxIndex].supportPara {
 					app.fixFeeCollector()
 				}
 				res = app.deliverTxWithCache(pm.upComingTxIndex)

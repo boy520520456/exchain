@@ -103,9 +103,10 @@ func getTxFeeHandler() sdk.GetTxFeeHandler {
 
 // getTxFeeAndFromHandler get tx fee and from
 func getTxFeeAndFromHandler(ak auth.AccountKeeper) sdk.GetTxFeeAndFromHandler {
-	return func(ctx sdk.Context, tx sdk.Tx) (fee sdk.Coins, canParaTx bool, from string, to string, err error) {
+	return func(ctx sdk.Context, tx sdk.Tx) (fee sdk.Coins, isEvm bool, from string, to string, err error, supportPara bool) {
 		if evmTx, ok := tx.(*evmtypes.MsgEthereumTx); ok {
-			canParaTx = true
+			isEvm = true
+			supportPara = true
 			err = evmTxVerifySigHandler(ctx.ChainID(), ctx.BlockHeight(), evmTx)
 			if err != nil {
 				return
@@ -119,11 +120,12 @@ func getTxFeeAndFromHandler(ak auth.AccountKeeper) sdk.GetTxFeeAndFromHandler {
 				to = strings.ToLower(evmTx.To().String()[2:])
 			}
 		} else if feeTx, ok := tx.(authante.FeeTx); ok {
+
 			fee = feeTx.GetFee()
 			if stdTx, ok := tx.(*auth.StdTx); ok && len(stdTx.Msgs) == 1 { // only support one message
 				if msg, ok := stdTx.Msgs[0].(interface{ CalFromAndToForPara() (string, string) }); ok {
 					from, to = msg.CalFromAndToForPara()
-					canParaTx = true
+					supportPara = true
 				}
 			}
 
