@@ -684,8 +684,8 @@ func (pm *parallelTxManager) addBlockCacheToChainCache() {
 }
 
 var (
-	f1, _ = hex.DecodeString("01f1829676db577682e944fc3493d451b67ff3e29f")
-	f2, _ = hex.DecodeString("08")
+	feeAccountKey, _  = hex.DecodeString("01f1829676db577682e944fc3493d451b67ff3e29f")
+	wasmTxCountKey, _ = hex.DecodeString("08")
 )
 
 func (pm *parallelTxManager) isConflict(e *executeResult) bool {
@@ -693,8 +693,8 @@ func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 		return true //TODO fix later
 	}
 	for storeKey, rw := range e.rwSet {
-		delete(rw.Read, string(f1))
-		delete(rw.Read, string(f2))
+		delete(rw.Read, string(feeAccountKey))
+		delete(rw.Read, string(wasmTxCountKey))
 		for key, value := range rw.Read {
 			if data, ok := pm.conflictCheck[storeKey].Write[key]; ok {
 				//if hex.EncodeToString([]byte(key)) == "01f1829676db577682e944fc3493d451b67ff3e29f" || hex.EncodeToString([]byte(key)) == "08" {
