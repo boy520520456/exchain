@@ -2,7 +2,7 @@ package baseapp
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/hex"
 	"runtime"
 	"sync"
 
@@ -683,20 +683,25 @@ func (pm *parallelTxManager) addBlockCacheToChainCache() {
 	pm.blockMultiStores.Clear()
 }
 
+var (
+	f1, _ = hex.DecodeString("01f1829676db577682e944fc3493d451b67ff3e29f")
+	f2, _ = hex.DecodeString("08")
+)
+
 func (pm *parallelTxManager) isConflict(e *executeResult) bool {
 	if e.msIsNil {
 		return true //TODO fix later
 	}
 	for storeKey, rw := range e.rwSet {
-		delete(rw.Read, "01f1829676db577682e944fc3493d451b67ff3e29f")
-		delete(rw.Read, "08")
+		delete(rw.Read, string(f1))
+		delete(rw.Read, string(f2))
 		for key, value := range rw.Read {
 			if data, ok := pm.conflictCheck[storeKey].Write[key]; ok {
 				//if hex.EncodeToString([]byte(key)) == "01f1829676db577682e944fc3493d451b67ff3e29f" || hex.EncodeToString([]byte(key)) == "08" {
 				//	continue
 				//}
 				if !bytes.Equal(data.Value, value) {
-					fmt.Println("kkkk", key)
+					//fmt.Println("kkkk", key, []byte(key))
 					return true
 				}
 			}
