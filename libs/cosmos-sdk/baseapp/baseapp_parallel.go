@@ -3,6 +3,7 @@ package baseapp
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"runtime"
 	"sync"
 
@@ -171,6 +172,9 @@ func (app *BaseApp) calGroup() {
 			}
 		}
 	}
+	for index, v := range para.groupList {
+		fmt.Println("index", index, v)
+	}
 }
 
 // ParallelTxs run txs
@@ -255,6 +259,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 			pm.blockGasMeterMu.Unlock()
 
 			pm.SetCurrentIndex(pm.upComingTxIndex, res)
+			fmt.Println("SetCurrent", res.counter, res.blockHeight)
 			currentGas += uint64(res.resp.GasUsed)
 
 			if isReRun {
