@@ -3,7 +3,6 @@ package baseapp
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"runtime"
 	"sync"
 
@@ -174,9 +173,9 @@ func (app *BaseApp) calGroup() {
 			}
 		}
 	}
-	for index := 0; index < len(para.groupList); index++ {
-		fmt.Println("index", index, para.groupList[index])
-	}
+	//for index := 0; index < len(para.groupList); index++ {
+	//	fmt.Println("index", index, para.groupList[index])
+	//}
 }
 
 // ParallelTxs run txs
@@ -225,7 +224,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	pm := app.parallelTxManage
 
 	asyncCb := func(receiveTxIndex int) {
-		fmt.Println("receive-----", receiveTxIndex)
+		//fmt.Println("receive-----", receiveTxIndex)
 		if pm.alreadyEnd {
 			return
 		}
@@ -262,7 +261,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 			pm.blockGasMeterMu.Unlock()
 
 			pm.SetCurrentIndex(pm.upComingTxIndex, res)
-			fmt.Println("SetCurrent", res.counter, res.blockHeight)
+			//fmt.Println("SetCurrent", res.counter, res.blockHeight)
 			currentGas += uint64(res.resp.GasUsed)
 
 			if isReRun {
@@ -481,7 +480,7 @@ func (pm *parallelTxManager) putResult(txIndex int, res *executeResult) {
 		return
 	}
 
-	fmt.Println("putResult", txIndex, res != nil, len(pm.resultCh))
+	//fmt.Println("putResult", txIndex, res != nil, len(pm.resultCh))
 	pm.txReps[txIndex] = res
 	if res != nil {
 		pm.resultCh <- txIndex
@@ -500,12 +499,12 @@ func (pm *parallelTxManager) StartResultHandle() {
 		for {
 			select {
 			case exec := <-pm.resultCh:
-				fmt.Println("start handle result---", exec)
+				//fmt.Println("start handle result---", exec)
 				pm.resultCb(exec)
-				fmt.Println("end handle result---", exec)
+				//fmt.Println("end handle result---", exec)
 
 			case <-pm.stop:
-				fmt.Println("stop!!!!")
+				//fmt.Println("stop!!!!")
 				return
 			}
 		}
