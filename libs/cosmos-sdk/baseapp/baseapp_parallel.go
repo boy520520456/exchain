@@ -498,9 +498,12 @@ func (pm *parallelTxManager) StartResultHandle() {
 		for {
 			select {
 			case exec := <-pm.resultCh:
+				fmt.Println("start handle result---", exec)
 				pm.resultCb(exec)
+				fmt.Println("end handle result---", exec)
 
 			case <-pm.stop:
+				fmt.Println("stop!!!!")
 				return
 			}
 		}
