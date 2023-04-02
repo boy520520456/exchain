@@ -479,6 +479,7 @@ func (pm *parallelTxManager) putResult(txIndex int, res *executeResult) {
 		return
 	}
 
+	fmt.Println("putResult", txIndex, res != nil)
 	pm.txReps[txIndex] = res
 	if res != nil {
 		pm.resultCh <- txIndex
