@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	maxTxResultInChan           = 20000
+	maxTxResultInChan           = 200000
 	maxGoroutineNumberInParaTx  = runtime.NumCPU()
 	multiCacheListClearInterval = int64(100)
 )
