@@ -133,14 +133,16 @@ func (app *BaseApp) calGroup() {
 	for index, tx := range para.extraTxsInfo {
 		if tx.supportPara { //evmTx && wasmTx
 			Union(tx.from, tx.to)
-		}
-		if !tx.isEvm {
-			para.cosmosTxIndexInBlock++
-			para.txByteMpCosmosIndex[string(para.txs[index])] = para.cosmosTxIndexInBlock
-
+		} else {
 			para.haveCosmosTxInBlock = true
 			app.parallelTxManage.putResult(index, &executeResult{paraMsg: &sdk.ParaMsg{}, msIsNil: true})
 		}
+
+		if !tx.isEvm {
+			para.cosmosTxIndexInBlock++
+			para.txByteMpCosmosIndex[string(para.txs[index])] = para.cosmosTxIndexInBlock
+		}
+
 	}
 
 	addrToID := make(map[string]int, 0)
