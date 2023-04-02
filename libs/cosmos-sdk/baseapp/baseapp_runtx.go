@@ -402,6 +402,7 @@ func (app *BaseApp) runTx_defer_recover(r interface{}, info *runTxInfo) error {
 }
 
 func (app *BaseApp) asyncDeliverTx(txIndex int) *executeResult {
+	fmt.Println("run0---", txIndex)
 	pm := app.parallelTxManage
 	if app.deliverState == nil { // runTxs already finish
 		return nil

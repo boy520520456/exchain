@@ -172,8 +172,8 @@ func (app *BaseApp) calGroup() {
 			}
 		}
 	}
-	for index, v := range para.groupList {
-		fmt.Println("index", index, v)
+	for index := 0; index < len(para.groupList); index++ {
+		fmt.Println("index", index, para.groupList[index])
 	}
 }
 
@@ -223,6 +223,7 @@ func (app *BaseApp) runTxs() []*abci.ResponseDeliverTx {
 	pm := app.parallelTxManage
 
 	asyncCb := func(receiveTxIndex int) {
+		fmt.Println("receive-----", receiveTxIndex)
 		if pm.alreadyEnd {
 			return
 		}
