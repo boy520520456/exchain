@@ -1,6 +1,7 @@
 package refund
 
 import (
+	"fmt"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
 	"math/big"
 	"sync"
@@ -57,6 +58,7 @@ type accountKeeperInterface interface {
 }
 
 func gasRefund(ik innertx.InnerTxKeeper, ak accountKeeperInterface, sk types.SupplyKeeper, ctx sdk.Context, tx sdk.Tx) (refundGasFee sdk.Coins, err error) {
+	fmt.Printf("txType:%s, ", tx.GetType())
 	currentGasMeter := ctx.GasMeter()
 	ctx.SetGasMeter(sdk.NewInfiniteGasMeter())
 
@@ -97,6 +99,8 @@ func gasRefund(ik innertx.InnerTxKeeper, ak accountKeeperInterface, sk types.Sup
 		return nil, err
 	}
 	ak.SetAccount(ctx, feePayerAcc)
+
+	fmt.Println(gasFees)
 
 	return gasFees, nil
 }
