@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 )
@@ -126,6 +127,7 @@ func HigherThanVenus(height int64) bool {
 
 // use MPT storage model to replace IAVL storage model
 func HigherThanMars(height int64) bool {
+	fmt.Println("height", height, milestoneMarsHeight)
 	if milestoneMarsHeight == 0 {
 		return false
 	}
