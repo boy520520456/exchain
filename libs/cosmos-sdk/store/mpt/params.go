@@ -38,10 +38,6 @@ var (
 	KeyPrefixAccLatestStoredHeight = []byte{0x12}
 	KeyPrefixEvmRootMptHash        = []byte{0x13}
 	KeyPrefixEvmLatestStoredHeight = []byte{0x14}
-
-	GAccToPrefetchChannel    = make(chan [][]byte, 2000)
-	GAccTryUpdateTrieChannel = make(chan struct{})
-	GAccTrieUpdatedChannel   = make(chan struct{})
 )
 
 var (

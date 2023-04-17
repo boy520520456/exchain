@@ -51,9 +51,7 @@ type MptStore struct {
 	logger  tmlog.Logger
 	kvCache *fastcache.Cache
 
-	prefetcher   *TriePrefetcher
 	originalRoot ethcmn.Hash
-	exitSignal   chan struct{}
 
 	version      int64
 	startVersion int64
@@ -88,11 +86,10 @@ func NewMptStore(logger tmlog.Logger, id types.CommitID) (*MptStore, error) {
 func generateMptStore(logger tmlog.Logger, id types.CommitID, db ethstate.Database) (*MptStore, error) {
 	triegc := prque.New(nil)
 	mptStore := &MptStore{
-		db:         db,
-		triegc:     triegc,
-		logger:     logger,
-		kvCache:    fastcache.New(int(TrieAccStoreCache) * 1024 * 1024),
-		exitSignal: make(chan struct{}),
+		db:      db,
+		triegc:  triegc,
+		logger:  logger,
+		kvCache: fastcache.New(int(TrieAccStoreCache) * 1024 * 1024),
 	}
 	err := mptStore.openTrie(id)
 
@@ -127,9 +124,6 @@ func (ms *MptStore) openTrie(id types.CommitID) error {
 		ms.logger.Info("open acc mpt trie", "version", openHeight, "trieHash", openedRootHash)
 	}
 
-	ms.StartPrefetcher("mptStore")
-	ms.prefetchData()
-
 	return nil
 }
 
@@ -143,7 +137,6 @@ func (ms *MptStore) GetImmutable(height int64) (*MptStore, error) {
 		db:           ms.db,
 		trie:         tr,
 		originalRoot: rootHash,
-		exitSignal:   make(chan struct{}),
 		version:      height,
 		startVersion: height,
 	}
@@ -199,9 +192,6 @@ func (ms *MptStore) Has(key []byte) bool {
 func (ms *MptStore) Set(key, value []byte) {
 	types.AssertValidValue(value)
 
-	if ms.prefetcher != nil {
-		ms.prefetcher.Used(ms.originalRoot, [][]byte{key})
-	}
 	if ms.kvCache != nil {
 		ms.kvCache.Set(key, value)
 	}
@@ -213,9 +203,6 @@ func (ms *MptStore) Set(key, value []byte) {
 }
 
 func (ms *MptStore) Delete(key []byte) {
-	if ms.prefetcher != nil {
-		ms.prefetcher.Used(ms.originalRoot, [][]byte{key})
-	}
 
 	if ms.kvCache != nil {
 		ms.kvCache.Del(key)
@@ -240,9 +227,6 @@ func (ms *MptStore) ReverseIterator(start, end []byte) types.Iterator {
 func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iavl.TreeDelta) {
 	ms.version++
 
-	// stop pre round prefetch
-	ms.StopPrefetcher()
-
 	root, err := ms.trie.Commit(nil)
 	if err != nil {
 		panic("fail to commit trie data: " + err.Error())
@@ -255,7 +239,6 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 	ms.PushData2Database(ms.version)
 
 	// start next found prefetch
-	ms.StartPrefetcher("mptStore")
 
 	return types.CommitID{
 		Version: ms.version,
@@ -397,8 +380,6 @@ func (ms *MptStore) OnStop() error {
 // it will abort them using the procInterrupt.
 func (ms *MptStore) StopWithVersion(targetVersion int64) error {
 	curVersion := uint64(targetVersion)
-	ms.exitSignal <- struct{}{}
-	ms.StopPrefetcher()
 
 	ms.cmLock.Lock()
 	defer ms.cmLock.Unlock()
@@ -531,50 +512,6 @@ func getVersionedWithProof(trie ethstate.Trie, key []byte) ([]byte, [][]byte, er
 	var proof ProofList
 	err = trie.Prove(crypto.Keccak256(key), 0, &proof)
 	return value, proof, err
-}
-
-func (ms *MptStore) StartPrefetcher(namespace string) {
-	if !tmtypes.HigherThanMars(ms.version) {
-		return
-	}
-
-	if ms.prefetcher != nil {
-		ms.prefetcher.Close()
-		ms.prefetcher = nil
-	}
-
-	ms.prefetcher = NewTriePrefetcher(ms.db, ms.originalRoot, namespace)
-}
-
-// StopPrefetcher terminates a running prefetcher and reports any leftover stats
-// from the gathered metrics.
-func (ms *MptStore) StopPrefetcher() {
-	if ms.prefetcher != nil {
-		ms.prefetcher.Close()
-		ms.prefetcher = nil
-	}
-}
-
-func (ms *MptStore) prefetchData() {
-	go func() {
-		for {
-			select {
-			case <-ms.exitSignal:
-				return
-			case <-GAccTryUpdateTrieChannel:
-				if ms.prefetcher != nil {
-					if trie := ms.prefetcher.Trie(ms.originalRoot); trie != nil {
-						ms.trie = trie
-					}
-				}
-				GAccTrieUpdatedChannel <- struct{}{}
-			case addr := <-GAccToPrefetchChannel:
-				if ms.prefetcher != nil {
-					ms.prefetcher.Prefetch(ms.originalRoot, addr)
-				}
-			}
-		}
-	}()
 }
 
 func (ms *MptStore) SetUpgradeVersion(i int64) {}

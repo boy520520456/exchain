@@ -6,7 +6,6 @@ import (
 
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	ethstate "github.com/ethereum/go-ethereum/core/state"
-	types2 "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/okex/exchain/app/types"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
@@ -101,12 +100,6 @@ func (so *stateObject) getTrie(db ethstate.Database) ethstate.Trie {
 	if so.trie == nil {
 		// Try fetching from prefetcher first
 		// We don't prefetch empty tries
-		if so.stateRoot != types2.EmptyRootHash && so.stateDB.prefetcher != nil {
-			// When the miner is creating the pending state, there is no
-			// prefetcher
-			so.trie = so.stateDB.prefetcher.Trie(so.stateRoot)
-		}
-
 		if so.trie == nil {
 			var err error
 			so.trie, err = db.OpenStorageTrie(so.addrHash, so.stateRoot)
@@ -162,9 +155,6 @@ func (so *stateObject) updateTrie(db ethstate.Database) ethstate.Trie {
 			so.setError(tr.TryUpdate(key[:], v))
 		}
 	}
-	if so.stateDB.prefetcher != nil {
-		so.stateDB.prefetcher.Used(so.stateRoot, usedStorage)
-	}
 
 	if len(so.pendingStorage) > 0 {
 		so.pendingStorage = make(ethstate.Storage)
@@ -193,24 +183,9 @@ func (so *stateObject) CommitTrie(db ethstate.Database) error {
 // finalise moves all dirty storage slots into the pending area to be hashed or
 // committed later. It is invoked at the end of every transaction.
 func (so *stateObject) finalise(prefetch bool) {
-	if so.stateDB.prefetcher != nil && prefetch && so.stateRoot != types2.EmptyRootHash {
-		slotsToPrefetch := make([][]byte, 0, len(so.dirtyStorage))
-		for key, value := range so.dirtyStorage {
-			so.pendingStorage[key] = value
-			if value != so.originStorage[key] {
-				if TrieUseCompositeKey {
-					key = GetStorageByAddressKey(so.Address().Bytes(), key.Bytes())
-				}
-				slotsToPrefetch = append(slotsToPrefetch, ethcmn.CopyBytes(key[:])) // Copy needed for closure
-			}
-		}
-		if len(slotsToPrefetch) > 0 {
-			so.stateDB.prefetcher.Prefetch(so.stateRoot, slotsToPrefetch)
-		}
-	} else {
-		for key, value := range so.dirtyStorage {
-			so.pendingStorage[key] = value
-		}
+
+	for key, value := range so.dirtyStorage {
+		so.pendingStorage[key] = value
 	}
 
 	if len(so.dirtyStorage) > 0 {

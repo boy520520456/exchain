@@ -356,10 +356,6 @@ func (so *stateObject) commitState(db ethstate.Database) {
 		}
 	}
 
-	if so.stateDB.prefetcher != nil && mpt.TrieWriteAhead {
-		so.stateDB.prefetcher.Used(so.stateRoot, usedStorage)
-	}
-
 	if len(so.pendingStorage) > 0 {
 		so.pendingStorage = make(ethstate.Storage)
 	}

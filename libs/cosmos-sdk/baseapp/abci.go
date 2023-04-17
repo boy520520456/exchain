@@ -286,9 +286,6 @@ func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 		app.mptCommitHandler(app.deliverState.ctx)
 	}
 	if mptStore := app.cms.GetCommitKVStore(sdk.NewKVStoreKey(mpt.StoreKey)); mptStore != nil {
-		// notify mptStore to tryUpdateTrie, must call before app.deliverState.ms.Write()
-		mpt.GAccTryUpdateTrieChannel <- struct{}{}
-		<-mpt.GAccTrieUpdatedChannel
 	}
 
 	// Write the DeliverTx state which is cache-wrapped and commit the MultiStore.

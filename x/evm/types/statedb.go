@@ -80,7 +80,6 @@ type CacheCode struct {
 type CommitStateDB struct {
 	db           ethstate.Database
 	trie         ethstate.Trie // only storage addr -> storageMptRoot in this mpt tree
-	prefetcher   *mpt.TriePrefetcher
 	originalRoot ethcmn.Hash
 
 	// TODO: We need to store the context as part of the structure itself opposed
@@ -301,7 +300,6 @@ func ResetCommitStateDB(csdb *CommitStateDB, csdbParams CommitStateDBParams, ctx
 		csdb.updatedAccount = make(map[ethcmn.Address]struct{})
 	}
 
-	csdb.prefetcher = nil
 	csdb.ctx = *ctx
 	csdb.refund = 0
 	csdb.thash = ethcmn.Hash{}
@@ -917,22 +915,6 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 	// This is weird pre-byzantium since the first tx runs with a prefetcher and
 	// the remainder without, but pre-byzantium even the initial prefetcher is
 	// useless, so no sleep lost.
-	prefetcher := csdb.prefetcher
-	if csdb.prefetcher != nil {
-		defer func() {
-			csdb.prefetcher.Close()
-			csdb.prefetcher = nil
-		}()
-	}
-
-	// Now we're about to start to write changes to the trie. The trie is so far
-	// _untouched_. We can check with the prefetcher, if it can give us a trie
-	// which has the same root, but also has some content loaded into it.
-	if prefetcher != nil {
-		if trie := prefetcher.Trie(csdb.originalRoot); trie != nil {
-			csdb.trie = trie
-		}
-	}
 
 	if !tmtypes.HigherThanMars(csdb.ctx.BlockHeight()) {
 		if mpt.TrieWriteAhead {
@@ -962,9 +944,6 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 
 				usedAddrs = append(usedAddrs, ethcmn.CopyBytes(addr[:])) // Copy needed for closure
 			}
-			if prefetcher != nil {
-				prefetcher.Used(csdb.originalRoot, usedAddrs)
-			}
 
 			if codeWriter.ValueSize() > 0 {
 				if err := codeWriter.Write(); err != nil {
@@ -990,7 +969,7 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 
 		return ethcmn.Hash{}, nil
 	} else {
-		return csdb.CommitMpt(prefetcher)
+		return csdb.CommitMpt()
 	}
 }
 
@@ -998,7 +977,6 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 // removing the csdb destructed objects and clearing the journal as well as the
 // refunds.
 func (csdb *CommitStateDB) Finalise(deleteEmptyObjects bool) {
-	addressesToPrefetch := make([][]byte, 0, len(csdb.journal.dirties))
 	for addr := range csdb.journal.dirties {
 		obj, exist := csdb.stateObjects[addr]
 		if !exist {
@@ -1021,10 +999,6 @@ func (csdb *CommitStateDB) Finalise(deleteEmptyObjects bool) {
 		// At this point, also ship the address off to the precacher. The precacher
 		// will start loading tries, and when the change is eventually committed,
 		// the commit-phase will be a lot faster
-		addressesToPrefetch = append(addressesToPrefetch, ethcmn.CopyBytes(addr[:])) // Copy needed for closure
-	}
-	if csdb.prefetcher != nil && len(addressesToPrefetch) > 0 {
-		csdb.prefetcher.Prefetch(csdb.originalRoot, addressesToPrefetch)
 	}
 
 	// Invalidate journal because reverting across transactions is not allowed.
@@ -1290,8 +1264,8 @@ func (csdb *CommitStateDB) Prepare(thash, bhash ethcmn.Hash, txi int) {
 // CreateAccount is called during the EVM CREATE operation. The situation might
 // arise that a contract does the following:
 //
-//   1. sends funds to sha(account ++ (nonce + 1))
-//   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
+//  1. sends funds to sha(account ++ (nonce + 1))
+//  2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
 // Carrying over the balance ensures that Ether doesn't disappear.
 func (csdb *CommitStateDB) CreateAccount(addr ethcmn.Address) {

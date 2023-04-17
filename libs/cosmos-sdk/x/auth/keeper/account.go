@@ -138,10 +138,6 @@ func (ak AccountKeeper) SetAccount(ctx sdk.Context, acc exported.Account) {
 		ctx.Cache().UpdateAccount(addr, acc.Copy(), len(bz), true)
 	}
 
-	if ctx.IsDeliver() && (tmtypes.HigherThanMars(ctx.BlockHeight()) || mpt.TrieWriteAhead) {
-		mpt.GAccToPrefetchChannel <- [][]byte{storeAccKey}
-	}
-
 	if !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
 		if ak.observers != nil {
 			for _, observer := range ak.observers {
@@ -187,10 +183,6 @@ func (ak AccountKeeper) RemoveAccount(ctx sdk.Context, acc exported.Account) {
 	store.Delete(storeAccKey)
 	if !tmtypes.HigherThanMars(ctx.BlockHeight()) && mpt.TrieWriteAhead {
 		ctx.MultiStore().GetKVStore(ak.mptKey).Delete(storeAccKey)
-	}
-
-	if ctx.IsDeliver() && (tmtypes.HigherThanMars(ctx.BlockHeight()) || mpt.TrieWriteAhead) {
-		mpt.GAccToPrefetchChannel <- [][]byte{storeAccKey}
 	}
 
 	ctx.Cache().UpdateAccount(addr, nil, 0, true)

@@ -53,7 +53,6 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 		//that can make sure latest block has been committed
 		k.UpdatedAccount = k.UpdatedAccount[:0]
 		k.EvmStateDb = types.CreateEmptyCommitStateDB(k.GenerateCSDBParams(), ctx)
-		k.EvmStateDb.StartPrefetcher("evm")
 		k.Watcher.NewHeight(uint64(req.Header.GetHeight()), blockHash, req.Header)
 	}
 
