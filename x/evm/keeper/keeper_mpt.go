@@ -138,7 +138,7 @@ func (k *Keeper) PushData2Database(height int64, log log.Logger) {
 	defer k.cmLock.Unlock()
 
 	curMptRoot := k.GetMptRootHash(uint64(height))
-	if mpt.TrieDirtyDisabled {
+	if true {
 		// If we're running an archive node, always flush
 		k.fullNodePersist(curMptRoot, height, log)
 	} else {

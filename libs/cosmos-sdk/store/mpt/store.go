@@ -304,7 +304,7 @@ func (ms *MptStore) PushData2Database(curHeight int64) {
 	defer ms.cmLock.Unlock()
 
 	curMptRoot := ms.GetMptRootHash(uint64(curHeight))
-	if TrieDirtyDisabled {
+	if true {
 		// If we're running an archive node, always flush
 		ms.fullNodePersist(curMptRoot, curHeight)
 	} else {
@@ -543,7 +543,7 @@ func (ms *MptStore) StartPrefetcher(namespace string) {
 		ms.prefetcher = nil
 	}
 
-	ms.prefetcher = NewTriePrefetcher(ms.db, ms.originalRoot, namespace)
+	ms.prefetcher = nil
 }
 
 // StopPrefetcher terminates a running prefetcher and reports any leftover stats

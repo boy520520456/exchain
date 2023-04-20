@@ -26,7 +26,7 @@ const (
 
 var (
 	TrieWriteAhead          = false
-	TrieDirtyDisabled       = false
+	TrieDirtyDisabled       = true
 	TrieCacheSize     uint  = 2048 // MB
 	TrieNodesLimit    uint  = 256  // MB
 	TrieImgsLimit     uint  = 4    // MB

@@ -262,7 +262,7 @@ func (csdb *CommitStateDB) StartPrefetcher(namespace string) {
 		csdb.prefetcher = nil
 	}
 
-	csdb.prefetcher = mpt.NewTriePrefetcher(csdb.db, csdb.originalRoot, namespace)
+	csdb.prefetcher = nil
 }
 
 // StopPrefetcher terminates a running prefetcher and reports any leftover stats
