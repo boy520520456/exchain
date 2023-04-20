@@ -1,6 +1,8 @@
 package dbadapter
 
 import (
+	"encoding/hex"
+	"fmt"
 	"io"
 
 	dbm "github.com/okex/exchain/libs/tm-db"
@@ -18,6 +20,7 @@ type Store struct {
 // Get wraps the underlying DB's Get method panicing on error.
 func (dsa Store) Get(key []byte) []byte {
 	v, err := dsa.DB.Get(key)
+	fmt.Sprintf("scf-Get", hex.EncodeToString(key), len(v))
 	if err != nil {
 		panic(err)
 	}
@@ -37,6 +40,7 @@ func (dsa Store) Has(key []byte) bool {
 
 // Set wraps the underlying DB's Set method panicing on error.
 func (dsa Store) Set(key, value []byte) {
+	fmt.Println("scf-Set", hex.EncodeToString(key), len(value))
 	if err := dsa.DB.Set(key, value); err != nil {
 		panic(err)
 	}
