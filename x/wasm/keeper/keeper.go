@@ -22,6 +22,7 @@ import (
 	"github.com/okex/exchain/x/wasm/watcher"
 	"math"
 	"path/filepath"
+	"reflect"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -438,6 +439,7 @@ func (k Keeper) instantiate(ctx sdk.Context, codeID uint64, creator, admin sdk.W
 
 	// create contract address
 	contractAddress := k.generateContractAddress(ctx, codeID)
+	fmt.Println("instantiate", codeID, contractAddress.String())
 	existingAcct := k.accountKeeper.GetAccount(ctx, sdk.WasmToAccAddress(contractAddress))
 	if existingAcct != nil {
 		return nil, nil, sdkerrors.Wrap(types.ErrAccountExists, existingAcct.GetAddress().String())
@@ -899,7 +901,7 @@ func (k Keeper) contractInstance(ctx sdk.Context, contractAddress sdk.WasmAddres
 	store := k.ada.NewStore(ctx.GasMeter(), ctx.KVStore(k.storeKey), nil)
 	contractBz := store.Get(types.GetContractAddressKey(contractAddress))
 	if contractBz == nil {
-		fmt.Println("contractAddress", contractAddress.String())
+		fmt.Println("contractAddress", reflect.TypeOf(store), contractAddress.String())
 		debug.PrintStack()
 		return types.ContractInfo{}, types.CodeInfo{}, types.StoreAdapter{}, sdkerrors.Wrap(types.ErrNotFound, "contract")
 	}
@@ -936,6 +938,7 @@ func (k Keeper) HasContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress
 // storeContractInfo persists the ContractInfo. No secondary index updated here.
 func (k Keeper) storeContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress, contract *types.ContractInfo) {
 	store := k.ada.NewStore(ctx.GasMeter(), ctx.KVStore(k.storeKey), nil)
+	fmt.Println("contractInfo", contractAddress, contract.CodeID, reflect.TypeOf(store))
 	store.Set(types.GetContractAddressKey(contractAddress), k.cdc.GetProtocMarshal().MustMarshal(contract))
 }
 
