@@ -940,7 +940,7 @@ func (k Keeper) HasContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress
 func (k Keeper) storeContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress, contract *types.ContractInfo) {
 	store := k.ada.NewStore(ctx.GasMeter(), ctx.KVStore(k.storeKey), nil)
 	fmt.Println("scf-1storecontractInfo", contractAddress.String(), contract.CodeID, reflect.TypeOf(store))
-	if contractAddress.String() == "5A8D648DEE57B2FC90D98DC17FA887159B69638B" {
+	if contractAddress.String() == "0x5A8D648DEE57b2fc90D98DC17fa887159b69638b" {
 		debug.PrintStack()
 	}
 	store.Set(types.GetContractAddressKey(contractAddress), k.cdc.GetProtocMarshal().MustMarshal(contract))
