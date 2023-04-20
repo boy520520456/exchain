@@ -939,7 +939,7 @@ func (k Keeper) HasContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress
 // storeContractInfo persists the ContractInfo. No secondary index updated here.
 func (k Keeper) storeContractInfo(ctx sdk.Context, contractAddress sdk.WasmAddress, contract *types.ContractInfo) {
 	store := k.ada.NewStore(ctx.GasMeter(), ctx.KVStore(k.storeKey), nil)
-	fmt.Println("scf-storecontractInfo", reflect.TypeOf(k.ada), contractAddress.String(), contract.CodeID, reflect.TypeOf(store))
+	fmt.Println("scf-storecontractInfo", reflect.TypeOf(k.ada), reflect.TypeOf(ctx.KVStore(k.storeKey)), contractAddress.String(), contract.CodeID, reflect.TypeOf(store))
 	//if contractAddress.String() == "0x5A8D648DEE57b2fc90D98DC17fa887159b69638b" {
 	//	debug.PrintStack()
 	//}
