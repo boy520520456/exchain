@@ -22,6 +22,7 @@ import (
 	"github.com/okex/exchain/x/wasm/watcher"
 	"math"
 	"path/filepath"
+	"runtime/debug"
 	"strconv"
 	"strings"
 )
@@ -898,6 +899,8 @@ func (k Keeper) contractInstance(ctx sdk.Context, contractAddress sdk.WasmAddres
 	store := k.ada.NewStore(ctx.GasMeter(), ctx.KVStore(k.storeKey), nil)
 	contractBz := store.Get(types.GetContractAddressKey(contractAddress))
 	if contractBz == nil {
+		fmt.Println("contractAddress", contractAddress.String())
+		debug.PrintStack()
 		return types.ContractInfo{}, types.CodeInfo{}, types.StoreAdapter{}, sdkerrors.Wrap(types.ErrNotFound, "contract")
 	}
 	var contractInfo types.ContractInfo
