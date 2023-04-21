@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"encoding/hex"
+	"fmt"
 	"log"
 
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
@@ -40,6 +42,7 @@ func Commit() {
 			if msg.IsDelete {
 				batch.Delete(msg.Key)
 			} else {
+				fmt.Println("scf-batchset", hex.EncodeToString(msg.Key), len(msg.Value))
 				batch.Set(msg.Key, msg.Value)
 			}
 		}
