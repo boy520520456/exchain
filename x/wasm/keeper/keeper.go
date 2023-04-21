@@ -439,7 +439,6 @@ func (k Keeper) instantiate(ctx sdk.Context, codeID uint64, creator, admin sdk.W
 
 	// create contract address
 	contractAddress := k.generateContractAddress(ctx, codeID)
-	fmt.Println("scf-instantiate", codeID, contractAddress.String())
 	existingAcct := k.accountKeeper.GetAccount(ctx, sdk.WasmToAccAddress(contractAddress))
 	if existingAcct != nil {
 		return nil, nil, sdkerrors.Wrap(types.ErrAccountExists, existingAcct.GetAddress().String())
@@ -1182,7 +1181,8 @@ func (k Keeper) consumeRuntimeGas(ctx sdk.Context, gas uint64) {
 // generates a contract address from codeID + instanceID
 func (k Keeper) generateContractAddress(ctx sdk.Context, codeID uint64) sdk.WasmAddress {
 	instanceID := k.autoIncrementID(ctx, types.KeyLastInstanceID)
-	return BuildContractAddress(codeID, instanceID)
+	as := BuildContractAddress(codeID, instanceID)
+	fmt.Println("scf-instantiate", codeID, instanceID, as.String())
 }
 
 // BuildContractAddress builds an sdk account address for a contract.

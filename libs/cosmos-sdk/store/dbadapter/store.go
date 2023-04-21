@@ -20,7 +20,7 @@ type Store struct {
 // Get wraps the underlying DB's Get method panicing on error.
 func (dsa Store) Get(key []byte) []byte {
 	v, err := dsa.DB.Get(key)
-	fmt.Sprintf("scf-Get", hex.EncodeToString(key), len(v))
+	fmt.Println("scf-Get", hex.EncodeToString(key), len(v))
 	if err != nil {
 		panic(err)
 	}
