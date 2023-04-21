@@ -1183,6 +1183,7 @@ func (k Keeper) generateContractAddress(ctx sdk.Context, codeID uint64) sdk.Wasm
 	instanceID := k.autoIncrementID(ctx, types.KeyLastInstanceID)
 	as := BuildContractAddress(codeID, instanceID)
 	fmt.Println("scf-instantiate", codeID, instanceID, as.String())
+	return as
 }
 
 // BuildContractAddress builds an sdk account address for a contract.
