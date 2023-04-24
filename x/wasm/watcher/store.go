@@ -9,9 +9,7 @@ import (
 	"github.com/okex/exchain/app/types"
 	"github.com/okex/exchain/libs/cosmos-sdk/client/flags"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/dbadapter"
-	"github.com/okex/exchain/libs/cosmos-sdk/store/gaskv"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/prefix"
-	stypes "github.com/okex/exchain/libs/cosmos-sdk/store/types"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
 	dbm "github.com/okex/exchain/libs/tm-db"
 	"github.com/okex/exchain/x/evm/watcher"
@@ -105,26 +103,37 @@ func DeleteAccount(addr sdk.WasmAddress) {
 	}
 }
 
-func NewReadStore(pre []byte) sdk.KVStore {
+var (
+	dbStore = dbadapter.Store{DB: db}
+)
+
+func NewReadStore(s sdk.KVStore) sdk.KVStore {
 	rs := &readStore{
-		Store: dbadapter.Store{DB: db},
-	}
-	if len(pre) != 0 {
-		return prefix.NewStore(rs, pre)
+		s,
 	}
 	return rs
 }
 
 type Adapter struct{}
 
-func (a Adapter) NewStore(gasMeter sdk.GasMeter, _ sdk.KVStore, pre []byte) sdk.KVStore {
-	store := NewReadStore(pre)
-	return gaskv.NewStore(store, gasMeter, stypes.KVGasConfig())
+func (a Adapter) NewStore(gasMeter sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
+	if len(pre) != 0 {
+		s = prefix.NewStore(s, pre)
+	}
+
+	return NewReadStore(s)
 }
 
 type readStore struct {
-	dbadapter.Store
+	sdk.KVStore
 }
 
-func (r *readStore) Set(key, value []byte) {}
-func (r *readStore) Delete(key []byte)     {}
+func (r *readStore) Get(key []byte) []byte {
+	if value := r.KVStore.Get(key); len(value) != 0 {
+		return value
+	}
+	if value := dbStore.Get(key); len(value) != 0 {
+		return value
+	}
+	return nil
+}
