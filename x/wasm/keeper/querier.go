@@ -192,7 +192,7 @@ func (q grpcQuerier) SmartContractState(c context.Context, req *types.QuerySmart
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
 				err = sdkerrors.Wrapf(sdkerrors.ErrOutOfGas,
-					"out of gas in location: %v; gasWanted: %d, gasUsed: %d",
+					"out of gas in location-5: %v; gasWanted: %d, gasUsed: %d",
 					rType.Descriptor, ctx.GasMeter().Limit(), ctx.GasMeter().GasConsumed(),
 				)
 			default:
@@ -339,7 +339,7 @@ func (q grpcQuerier) UnwrapSDKContext(c context.Context) sdk.Context {
 
 func (q grpcQuerier) PrefixStore(c context.Context, pre []byte) sdk.KVStore {
 	if watcher.Enable() {
-		return watcher.NewReadStore(pre, nil, true)
+		return watcher.NewReadStore(nil, pre, true)
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	return prefix.NewStore(ctx.KVStore(q.storeKey), pre)

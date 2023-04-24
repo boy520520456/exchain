@@ -35,7 +35,7 @@ func (escd EthSetupContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			switch rType := r.(type) {
 			case sdk.ErrorOutOfGas:
 				log := fmt.Sprintf(
-					"out of gas in location: %v; gasLimit: %d, gasUsed: %d",
+					"out of gas in location-1: %v; gasLimit: %d, gasUsed: %d",
 					rType.Descriptor, tx.GetGas(), ctx.GasMeter().GasConsumed(),
 				)
 				err = sdkerrors.Wrap(sdkerrors.ErrOutOfGas, log)
