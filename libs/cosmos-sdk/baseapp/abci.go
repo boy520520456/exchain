@@ -182,6 +182,8 @@ func (app *BaseApp) UpdateFeeCollector(fee sdk.Coins, add bool) {
 		return
 	}
 	app.feeChanged = true
+
+	fmt.Println("update fee collcetor", fee, add)
 	if add {
 		app.feeCollector = app.feeCollector.Add(fee...)
 	} else {

@@ -82,6 +82,7 @@ func (app *BaseApp) runTx(mode runTxMode,
 }
 
 func (app *BaseApp) runtxWithInfo(info *runTxInfo, mode runTxMode, txBytes []byte, tx sdk.Tx, height int64, from ...string) (err error) {
+	fmt.Println("runTx")
 	info.handler = app.getModeHandler(mode)
 	info.tx = tx
 	info.txBytes = txBytes
