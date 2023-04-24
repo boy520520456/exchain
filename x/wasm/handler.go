@@ -2,6 +2,7 @@ package wasm
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/gogo/protobuf/proto"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
@@ -37,6 +38,7 @@ func NewHandler(k types.ContractOpsKeeper) sdk.Handler {
 			}
 		}()
 
+		fmt.Println("ttttttttttt", reflect.TypeOf(msg), ctx.IsDeliver())
 		switch msg := msg.(type) {
 		case *MsgStoreCode: //nolint:typecheck
 			res, err = msgServer.StoreCode(sdk.WrapSDKContext(ctx), msg)
