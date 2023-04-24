@@ -2,8 +2,10 @@ package baseapp
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -1626,4 +1628,14 @@ func TestWithRouter(t *testing.T) {
 		app.EndBlock(abci.RequestEndBlock{})
 		app.Commit(abci.RequestCommit{})
 	}
+}
+
+func TestAsd(t *testing.T) {
+	e, err := ethclient.Dial("http://35.72.176.238:26659")
+	if err != nil {
+		panic(err)
+	}
+
+	cc, err := e.ChainID(context.Background())
+	fmt.Println("cc", cc, err)
 }

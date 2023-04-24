@@ -1,6 +1,7 @@
 package refund
 
 import (
+	"fmt"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
 	"math/big"
 	"sync"
@@ -25,6 +26,7 @@ func NewGasRefundHandler(ak auth.AccountKeeper, sk types.SupplyKeeper, ik innert
 		var gasRefundHandler sdk.GasRefundHandler
 
 		if tmtypes.HigherThanEarth(ctx.BlockHeight()) {
+			fmt.Println("fuck----", ctx.BlockHeight(), tmtypes.GetEarthHeight())
 			gasRefundHandler = evmGasRefundHandler
 		} else {
 			if tx.GetType() == sdk.EvmTxType {
@@ -81,6 +83,7 @@ func gasRefund(ik innertx.InnerTxKeeper, ak accountKeeperInterface, sk types.Sup
 	gas := feeTx.GetGas()
 	fees := feeTx.GetFee()
 	gasFees := calculateRefundFees(gasUsed, gas, fees)
+	fmt.Println("ffffffff=cal", gasUsed, gas, fees)
 	newCoins := feePayerAcc.GetCoins().Add(gasFees...)
 
 	// set coins and record innertx
