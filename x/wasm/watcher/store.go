@@ -113,9 +113,6 @@ func NewReadStore(s sdk.KVStore, pre []byte, onlyReadFromWatchDB bool) sdk.KVSto
 			dbStore,
 		}
 	}
-	if len(pre) != 0 {
-		s = prefix.NewStore(s, pre)
-	}
 	return &readStore{
 		s,
 	}
@@ -125,7 +122,11 @@ func NewReadStore(s sdk.KVStore, pre []byte, onlyReadFromWatchDB bool) sdk.KVSto
 type Adapter struct{} // only for wasm simulate
 
 func (a Adapter) NewStore(_ sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
-	return NewReadStore(s, pre, false)
+	store := NewReadStore(s, pre, false)
+	if len(pre) != 0 {
+		store = prefix.NewStore(store, pre)
+	}
+	return store
 }
 
 type readStore struct {
