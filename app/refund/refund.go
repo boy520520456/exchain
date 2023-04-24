@@ -83,7 +83,7 @@ func gasRefund(ik innertx.InnerTxKeeper, ak accountKeeperInterface, sk types.Sup
 	gas := feeTx.GetGas()
 	fees := feeTx.GetFee()
 	gasFees := calculateRefundFees(gasUsed, gas, fees)
-	fmt.Println("ffffffff=cal", gasUsed, gas, fees)
+	fmt.Println("ffffffff=cal", gasUsed, gas, fees, gasFees)
 	newCoins := feePayerAcc.GetCoins().Add(gasFees...)
 
 	// set coins and record innertx

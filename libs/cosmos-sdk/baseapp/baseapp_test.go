@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"io/ioutil"
 	"math/big"
@@ -1638,4 +1639,12 @@ func TestAsd(t *testing.T) {
 
 	cc, err := e.ChainID(context.Background())
 	fmt.Println("cc", cc, err)
+
+	heights := []int{18969441, 18969442, 18969525, 18969526, 18969665, 18969666}
+
+	for _, v := range heights {
+		bala, err := e.BalanceAt(context.Background(), common.HexToAddress("0xb82BC94C4e7D1A233A60EE6F6594ecC71a810974"), new(big.Int).SetInt64(int64(v)))
+		fmt.Println(err, "height", v, "balance", bala)
+	}
+
 }
