@@ -435,6 +435,7 @@ func handleSimulateWithBuffer(app *BaseApp, path []string, height int64, txBytes
 }
 
 func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, overrideBytes []byte) (sdk.SimulationResponse, bool, error) {
+	fmt.Println("scf-handle simulate--")
 	// if path contains address, it means 'eth_estimateGas' the sender
 	hasExtraPaths := len(path) > 2
 	var from string
@@ -492,6 +493,7 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 }
 
 func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg) (simRes sdk.SimulationResponse, err error) {
+	fmt.Println("scf--- handleSimulateWasm", msgs[0])
 	wasmSimulator := simulator.NewWasmSimulator()
 	defer wasmSimulator.Release()
 	defer func() {
