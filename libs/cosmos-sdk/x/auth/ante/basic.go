@@ -1,6 +1,7 @@
 package ante
 
 import (
+	"fmt"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
 	sdkerrors "github.com/okex/exchain/libs/cosmos-sdk/types/errors"
 	"github.com/okex/exchain/libs/cosmos-sdk/x/auth/keeper"
@@ -69,6 +70,7 @@ func (vmd ValidateMemoDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid transaction type")
 	}
 
+	fmt.Println("scf-validate-memo-deo", ctx.GasMeter().GasConsumed(), ctx.GasMeter().Limit())
 	params := vmd.ak.GetParams(ctx)
 
 	memoLength := len(memoTx.GetMemo())
