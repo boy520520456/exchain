@@ -200,6 +200,7 @@ func (app *BaseApp) updateFeeCollectorAccount(isEndBlock bool) {
 			app.logger.Error("update fee collector account failed", "err", err)
 		}
 	}()
+	fmt.Println("updateFee", isEndBlock, app.feeCollector)
 
 	ctx, cache := app.cacheTxContext(app.getContextForTx(runTxModeDeliver, []byte{}), []byte{})
 	if isEndBlock {
