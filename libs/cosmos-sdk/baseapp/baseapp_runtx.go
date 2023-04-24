@@ -179,6 +179,7 @@ func (app *BaseApp) runtxWithInfo(info *runTxInfo, mode runTxMode, txBytes []byt
 
 	app.pin(trace.RunAnte, true, mode)
 	if app.anteHandler != nil {
+		fmt.Println("before ante", info.ctx.GasMeter().Limit())
 		err = app.runAnte(info, mode)
 		if err != nil {
 			fmt.Println("ante err", err, info.ctx.GasMeter().Limit())
