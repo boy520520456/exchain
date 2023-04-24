@@ -162,6 +162,7 @@ func (app *BaseApp) runtxWithInfo(info *runTxInfo, mode runTxMode, txBytes []byt
 		}
 		app.pin(trace.Refund, true, mode)
 		defer app.pin(trace.Refund, false, mode)
+		fmt.Println("defer -handle refund", info.ctx.GasMeter().Limit())
 		handler.handleDeferRefund(info)
 	}()
 
@@ -180,6 +181,7 @@ func (app *BaseApp) runtxWithInfo(info *runTxInfo, mode runTxMode, txBytes []byt
 	if app.anteHandler != nil {
 		err = app.runAnte(info, mode)
 		if err != nil {
+			fmt.Println("ante err", err)
 			return err
 		}
 	}
