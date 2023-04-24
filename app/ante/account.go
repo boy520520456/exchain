@@ -2,6 +2,7 @@ package ante
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
@@ -313,10 +314,12 @@ func (avd AccountAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 
 		ctx.EnableAccountCache()
 		// account would be updated
+		fmt.Println("ethGasConsume-start", ctx.GasMeter().Limit())
 		err = ethGasConsume(avd.evmKeeper, avd.ak, avd.sk, &ctx, acc, getAccGasUsed, msgEthTx, simulate)
 		acc = nil
 		acc, _ = ctx.GetFromAccountCacheData().(exported.Account)
 		ctx.DisableAccountCache()
+		fmt.Println("ethGasConsume-end", ctx.GasMeter().Limit())
 		if err != nil {
 			return ctx, err
 		}
