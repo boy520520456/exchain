@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"math"
+	"runtime/debug"
 )
 
 // Gas consumption descriptors.
@@ -89,7 +90,7 @@ func (g *basicGasMeter) ConsumeGas(amount Gas, descriptor string) {
 	// TODO: Should we set the consumed field after overflow checking?
 	fmt.Println("wyy-consumGas", g.consumed, g.limit, amount, descriptor)
 	if g.consumed == 0 && g.limit == 152373 && amount == 1000 && descriptor == "ReadFlat" {
-
+		debug.PrintStack()
 	}
 	g.consumed, overflow = addUint64Overflow(g.consumed, amount)
 	if overflow {
