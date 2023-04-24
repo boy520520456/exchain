@@ -28,6 +28,7 @@ func (sud SetUpContextDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 	} else {
 		SetGasMeter(simulate, &ctx, gasTx.GetGas())
 	}
+	fmt.Println("scf-SetUpContextDecorator", ctx.GasMeter().GasConsumed(), ctx.GasMeter().Limit(), simulate)
 
 	newCtx = ctx
 
