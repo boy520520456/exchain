@@ -1,6 +1,7 @@
 package baseapp
 
 import (
+	"fmt"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
 )
 
@@ -30,8 +31,8 @@ func (m *modeHandlerDeliver) handleRunMsg(info *runTxInfo) (err error) {
 
 type CacheTxContextFunc func(ctx sdk.Context, txBytes []byte) (sdk.Context, sdk.CacheMultiStore)
 
-//this handleGasRefund func is also called by modeHandlerTrace.handleDeferRefund
-//in this func, edit any member in BaseApp is prohibited
+// this handleGasRefund func is also called by modeHandlerTrace.handleDeferRefund
+// in this func, edit any member in BaseApp is prohibited
 func handleGasRefund(info *runTxInfo, cacheTxCtxFunc CacheTxContextFunc, gasRefundHandler sdk.GasRefundHandler) sdk.DecCoins {
 	var gasRefundCtx sdk.Context
 	info.ctx.Cache().Write(false)
@@ -58,7 +59,9 @@ func (m *modeHandlerDeliver) handleDeferRefund(info *runTxInfo) {
 		return
 	}
 	refund := handleGasRefund(info, m.app.cacheTxContext, m.app.GasRefundHandler)
+
 	m.app.UpdateFeeCollector(refund, false)
+	fmt.Println("refund", refund)
 	if info.ctx.GetFeeSplitInfo().HasFee {
 		m.app.FeeSplitCollector = append(m.app.FeeSplitCollector, info.ctx.GetFeeSplitInfo())
 	}
