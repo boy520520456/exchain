@@ -60,19 +60,17 @@ func gasRefund(ik innertx.InnerTxKeeper, ak accountKeeperInterface, sk types.Sup
 
 	gasLimit := currentGasMeter.Limit()
 	gasUsed := currentGasMeter.GasConsumed()
-
-	fmt.Println("ccccccc", gasUsed, gasLimit)
+	feeTx, ok := tx.(ante.FeeTx)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+	}
+	fmt.Println("ccccccc", gasUsed, gasLimit, feeTx.FeePayer(ctx).String())
 	if gasUsed >= gasLimit {
 		return nil, nil
 	}
 
 	if tx.GetType() == sdk.StdTxType && ctx.GetOutOfGas() {
 		return nil, nil
-	}
-
-	feeTx, ok := tx.(ante.FeeTx)
-	if !ok {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
 	feePayer := feeTx.FeePayer(ctx)
