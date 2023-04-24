@@ -249,6 +249,7 @@ func (app *BaseApp) runAnte(info *runTxInfo, mode runTxMode) error {
 		anteCtx.SetAnteTracer(app.anteTracer)
 	}
 	fmt.Println("scf-ante---", anteCtx.IsDeliver(), anteCtx.GasMeter().GasConsumed(), anteCtx.GasMeter().Limit())
+	fmt.Println("scf-ante---", info.ctx.IsDeliver(), info.ctx.GasMeter().GasConsumed(), info.ctx.GasMeter().Limit())
 	newCtx, err := app.anteHandler(anteCtx, info.tx, mode == runTxModeSimulate) // NewAnteHandler
 	app.pin(trace.AnteChain, false, mode)
 
