@@ -88,6 +88,9 @@ func (g *basicGasMeter) ConsumeGas(amount Gas, descriptor string) {
 	var overflow bool
 	// TODO: Should we set the consumed field after overflow checking?
 	fmt.Println("wyy-consumGas", g.consumed, g.limit, amount, descriptor)
+	if g.consumed == 0 && g.limit == 152373 && amount == 1000 && descriptor == "ReadFlat" {
+
+	}
 	g.consumed, overflow = addUint64Overflow(g.consumed, amount)
 	if overflow {
 		panic(ErrorGasOverflow{descriptor})
