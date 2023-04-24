@@ -466,21 +466,21 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 		shouldAddBuffer = true
 	}
 
-	msgs := tx.GetMsgs()
+	//msgs := tx.GetMsgs()
 
-	if enableFastQuery() {
-		isPureWasm := true
-		for _, msg := range msgs {
-			if msg.Route() != "wasm" {
-				isPureWasm = false
-				break
-			}
-		}
-		if isPureWasm {
-			res, err := handleSimulateWasm(height, txBytes, msgs)
-			return res, shouldAddBuffer, err
-		}
-	}
+	//if enableFastQuery() {
+	//	isPureWasm := true
+	//	for _, msg := range msgs {
+	//		if msg.Route() != "wasm" {
+	//			isPureWasm = false
+	//			break
+	//		}
+	//	}
+	//	if isPureWasm {
+	//		res, err := handleSimulateWasm(height, txBytes, msgs)
+	//		return res, shouldAddBuffer, err
+	//	}
+	//}
 	gInfo, res, err := app.Simulate(txBytes, tx, height, overrideBytes, from)
 	if err != nil && !isMempoolSim {
 		return sdk.SimulationResponse{}, false, sdkerrors.Wrap(err, "failed to simulate tx")
