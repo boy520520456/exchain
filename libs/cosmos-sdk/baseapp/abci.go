@@ -507,8 +507,8 @@ func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg) (simRes sd
 		}
 	}()
 
-	wasmSimulator.Context().GasMeter().ConsumeGas(73000, "general ante check cost")
-	wasmSimulator.Context().GasMeter().ConsumeGas(uint64(10*len(txBytes)), "tx size cost")
+	//wasmSimulator.Context().GasMeter().ConsumeGas(73000, "general ante check cost")
+	//wasmSimulator.Context().GasMeter().ConsumeGas(uint64(10*len(txBytes)), "tx size cost")
 	res, err := wasmSimulator.Simulate(msgs)
 	if err != nil {
 		return sdk.SimulationResponse{}, sdkerrors.Wrap(err, "failed to simulate wasm tx")
