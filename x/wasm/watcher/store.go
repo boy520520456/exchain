@@ -133,9 +133,9 @@ type readStore struct {
 }
 
 func (r *readStore) Get(key []byte) []byte {
-	//if value := r.KVStore.Get(key); len(value) != 0 {
-	//	return value
-	//}
+	if value := r.KVStore.Get(key); len(value) != 0 {
+		return value
+	}
 	if value := dbStore.Get(key); len(value) != 0 {
 		return value
 	}
