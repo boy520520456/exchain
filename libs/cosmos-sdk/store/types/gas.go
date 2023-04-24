@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -86,6 +87,7 @@ func addUint64Overflow(a, b uint64) (uint64, bool) {
 func (g *basicGasMeter) ConsumeGas(amount Gas, descriptor string) {
 	var overflow bool
 	// TODO: Should we set the consumed field after overflow checking?
+	fmt.Println("wyy-consumGas", g.consumed, g.limit, amount)
 	g.consumed, overflow = addUint64Overflow(g.consumed, amount)
 	if overflow {
 		panic(ErrorGasOverflow{descriptor})
