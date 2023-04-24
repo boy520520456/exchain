@@ -74,6 +74,7 @@ func (app *BaseApp) runTx(mode runTxMode,
 	txBytes []byte, tx sdk.Tx, height int64, from ...string) (info *runTxInfo, err error) {
 
 	info = &runTxInfo{}
+	fmt.Println("rrrrrr-------", tx.GetMsgs()[0])
 	err = app.runtxWithInfo(info, mode, txBytes, tx, height, from...)
 	if app.watcherCollector != nil && mode == runTxModeDeliver {
 		app.watcherCollector(info.runMsgCtx.GetWatcher())
