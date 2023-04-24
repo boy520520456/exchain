@@ -107,21 +107,25 @@ var (
 	dbStore = dbadapter.Store{DB: db}
 )
 
-func NewReadStore(s sdk.KVStore) sdk.KVStore {
-	rs := &readStore{
-		s,
+func NewReadStore(pre []byte, s sdk.KVStore, onlyReadFromWatchDB bool) sdk.KVStore { // only for wasm simulate and grpc query
+	if onlyReadFromWatchDB {
+		return &readStore{
+			dbStore,
+		}
 	}
-	return rs
-}
-
-type Adapter struct{}
-
-func (a Adapter) NewStore(gasMeter sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
 	if len(pre) != 0 {
 		s = prefix.NewStore(s, pre)
 	}
+	return &readStore{
+		s,
+	}
 
-	return NewReadStore(s)
+}
+
+type Adapter struct{} // only for wasm simulate
+
+func (a Adapter) NewStore(_ sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
+	return NewReadStore(pre, s, false)
 }
 
 type readStore struct {
