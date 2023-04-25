@@ -543,7 +543,7 @@ func (ms *MptStore) StartPrefetcher(namespace string) {
 		ms.prefetcher = nil
 	}
 
-	ms.prefetcher = NewTriePrefetcher(ms.db, ms.originalRoot, namespace)
+	ms.prefetcher = nil
 }
 
 // StopPrefetcher terminates a running prefetcher and reports any leftover stats
