@@ -116,6 +116,8 @@ func CompleteAndBroadcastTxCLI(txBldr authtypes.TxBuilder, cliCtx context.CLICon
 		}
 
 	}
+	txBytes1 := make([]byte, 0)
+	var err1 error
 
 	if isPbTxMsg {
 		txBytes, err = PbTxBuildAndSign(cliCtx, txConfig, txBldr, keys.DefaultKeyPass, pbtxMsgs)
@@ -128,9 +130,20 @@ func CompleteAndBroadcastTxCLI(txBldr authtypes.TxBuilder, cliCtx context.CLICon
 		if err != nil {
 			return err
 		}
+		txBldr.AddSeq()
+		txBytes1, err1 = txBldr.BuildAndSign(fromName, keys.DefaultKeyPass, msgs)
+		if err1 != nil {
+			return err1
+		}
 	}
 	// broadcast to a Tendermint node
 	res, err := cliCtx.BroadcastTx(txBytes)
+	fmt.Println("res1", res)
+	if err != nil {
+		return err
+	}
+	res1, err := cliCtx.BroadcastTx(txBytes1)
+	fmt.Println("res1", res1)
 	if err != nil {
 		return err
 	}

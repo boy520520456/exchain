@@ -82,6 +82,9 @@ func (bldr TxBuilder) AccountNumber() uint64 { return bldr.accountNumber }
 
 // Sequence returns the transaction sequence
 func (bldr TxBuilder) Sequence() uint64 { return bldr.sequence }
+func (bldr *TxBuilder) AddSeq() {
+	bldr.sequence = bldr.sequence + 1
+}
 
 // Gas returns the gas for the transaction
 func (bldr TxBuilder) Gas() uint64 { return bldr.gas }
@@ -225,6 +228,7 @@ func (bldr TxBuilder) BuildAndSign(name, passphrase string, msgs []sdk.Msg) ([]b
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("build Msg", msg)
 
 	return bldr.Sign(name, passphrase, msg)
 }
