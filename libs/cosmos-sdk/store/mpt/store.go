@@ -304,7 +304,7 @@ func (ms *MptStore) PushData2Database(curHeight int64) {
 	defer ms.cmLock.Unlock()
 
 	curMptRoot := ms.GetMptRootHash(uint64(curHeight))
-	if TrieDirtyDisabled {
+	if true {
 		// If we're running an archive node, always flush
 		ms.fullNodePersist(curMptRoot, curHeight)
 	} else {
