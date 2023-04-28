@@ -106,6 +106,14 @@ func DeleteAccount(addr sdk.WasmAddress) {
 	}
 }
 
+func NewWatchdbStore(pre []byte) sdk.KVStore {
+	if len(pre) != 0 {
+		return prefix.NewStore(watchdbForSimulate, pre)
+	}
+
+	return watchdbForSimulate
+}
+
 func NewReadStore(pre []byte, store sdk.KVStore) sdk.KVStore {
 	rs := &readStore{
 		mp: make(map[string][]byte, 0),
