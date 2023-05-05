@@ -116,6 +116,9 @@ func NewReadStore(pre []byte) sdk.KVStore {
 type Adapter struct{}
 
 func (a Adapter) NewStore(gasMeter sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
+	if len(pre) != 0 {
+		return prefix.NewStore(s, pre)
+	}
 	return s
 }
 
