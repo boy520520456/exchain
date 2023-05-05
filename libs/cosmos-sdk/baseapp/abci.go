@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -23,7 +22,6 @@ import (
 	abci "github.com/okex/exchain/libs/tendermint/abci/types"
 	cfg "github.com/okex/exchain/libs/tendermint/config"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
-	"github.com/spf13/viper"
 	"github.com/tendermint/go-amino"
 )
 
@@ -465,21 +463,6 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 		shouldAddBuffer = true
 	}
 
-	msgs := tx.GetMsgs()
-
-	if enableFastQuery() {
-		isPureWasm := true
-		for _, msg := range msgs {
-			if msg.Route() != "wasm" {
-				isPureWasm = false
-				break
-			}
-		}
-		if isPureWasm {
-			res, err := handleSimulateWasm(height, txBytes, msgs)
-			return res, shouldAddBuffer, err
-		}
-	}
 	gInfo, res, err := app.Simulate(txBytes, tx, height, overrideBytes, from)
 	if err != nil && !isMempoolSim {
 		return sdk.SimulationResponse{}, false, sdkerrors.Wrap(err, "failed to simulate tx")
@@ -717,16 +700,4 @@ func splitPath(requestPath string) (path []string) {
 	}
 
 	return path
-}
-
-var (
-	fastQuery bool
-	fqOnce    sync.Once
-)
-
-func enableFastQuery() bool {
-	fqOnce.Do(func() {
-		fastQuery = viper.GetBool("fast-query")
-	})
-	return fastQuery
 }

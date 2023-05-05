@@ -34,6 +34,7 @@ var (
 )
 
 func Enable() bool {
+	return false
 	checkOnce.Do(func() {
 		checked = true
 		if viper.GetBool(watcher.FlagFastQuery) {
