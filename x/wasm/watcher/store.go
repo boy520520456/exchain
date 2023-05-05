@@ -115,8 +115,8 @@ func NewReadStore(pre []byte) sdk.KVStore {
 
 type Adapter struct{}
 
-func (a Adapter) NewStore(gasMeter sdk.GasMeter, _ sdk.KVStore, pre []byte) sdk.KVStore {
-	return NewReadStore(pre)
+func (a Adapter) NewStore(gasMeter sdk.GasMeter, s sdk.KVStore, pre []byte) sdk.KVStore {
+	return s
 }
 
 type readStore struct {
