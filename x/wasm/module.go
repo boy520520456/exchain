@@ -130,12 +130,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	global.Manager = watcher.ParamsManager{}
 	simulator.NewWasmSimulator = NewWasmSimulator
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.permissionKeeper))
-	if watcher.Enable() {
-		k := NewProxyKeeper()
-		types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(&k))
-	} else {
-		types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
-	}
+	//if watcher.Enable() {
+	//	k := NewProxyKeeper()
+	//	types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(&k))
+	//} else {
+	types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
+	//}
 }
 
 func (am AppModule) GetPermissionKeeper() types.ContractOpsKeeper {
