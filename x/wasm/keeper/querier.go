@@ -12,7 +12,6 @@ import (
 	"github.com/okex/exchain/libs/cosmos-sdk/types/query"
 	"github.com/okex/exchain/x/wasm/proxy"
 	"github.com/okex/exchain/x/wasm/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -331,24 +330,15 @@ func (q grpcQuerier) PinnedCodes(c context.Context, req *types.QueryPinnedCodesR
 }
 
 func (q grpcQuerier) UnwrapSDKContext(c context.Context) sdk.Context {
-	if watcher.Enable() {
-		return proxy.MakeContext(q.storeKey)
-	}
 	return sdk.UnwrapSDKContext(c)
 }
 
 func (q grpcQuerier) PrefixStore(c context.Context, pre []byte) sdk.KVStore {
-	if watcher.Enable() {
-		return watcher.NewReadStore(pre)
-	}
 	ctx := sdk.UnwrapSDKContext(c)
 	return prefix.NewStore(ctx.KVStore(q.storeKey), pre)
 
 }
 
 func (q grpcQuerier) release(ctx sdk.Context) {
-	if !watcher.Enable() {
-		return
-	}
 	proxy.PutBackStorePool(ctx.MultiStore().(sdk.CacheMultiStore))
 }

@@ -24,8 +24,6 @@ import (
 	"github.com/okex/exchain/x/order"
 	"github.com/okex/exchain/x/staking"
 	token "github.com/okex/exchain/x/token/types"
-	"github.com/okex/exchain/x/wasm/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 )
 
 const (
@@ -96,11 +94,11 @@ type SubspaceProxy struct{}
 
 func (s SubspaceProxy) GetParamSet(ctx sdk.Context, ps params.ParamSet) {
 	ctx.GasMeter().ConsumeGas(2111, "SubspaceProxy GetParamSet")
-	if wasmParams, ok := ps.(*types.Params); ok {
-		wps := watcher.GetParams()
-		wasmParams.CodeUploadAccess = wps.CodeUploadAccess
-		wasmParams.InstantiateDefaultPermission = wps.InstantiateDefaultPermission
-	}
+	//if wasmParams, ok := ps.(*types.Params); ok {
+	//	wps := watcher.GetParams()
+	//	wasmParams.CodeUploadAccess = wps.CodeUploadAccess
+	//	wasmParams.InstantiateDefaultPermission = wps.InstantiateDefaultPermission
+	//}
 }
 func (s SubspaceProxy) SetParamSet(ctx sdk.Context, ps params.ParamSet) {}
 
@@ -137,10 +135,6 @@ func NewBankKeeperProxy(akp AccountKeeperProxy) BankKeeperProxy {
 }
 
 func (b BankKeeperProxy) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
-	acc, err := watcher.GetAccount(sdk.AccToAWasmddress(addr))
-	if err == nil {
-		return acc.GetCoins()
-	}
 
 	bs, err := clientCtx.Codec.MarshalJSON(auth.NewQueryAccountParams(addr.Bytes()))
 	if err != nil {
@@ -157,10 +151,6 @@ func (b BankKeeperProxy) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sd
 	if err != nil {
 		log.Println("GetAllBalances unmarshal json error", err)
 		return sdk.NewCoins()
-	}
-
-	if err = watcher.SetAccount(&account); err != nil {
-		log.Println("GetAllBalances save account error", err)
 	}
 
 	return account.GetCoins()

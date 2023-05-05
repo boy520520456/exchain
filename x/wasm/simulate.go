@@ -10,7 +10,6 @@ import (
 	"github.com/okex/exchain/x/wasm/keeper"
 	"github.com/okex/exchain/x/wasm/proxy"
 	"github.com/okex/exchain/x/wasm/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 	"sync"
 )
 
@@ -55,9 +54,9 @@ func (w *Simulator) Context() *sdk.Context {
 }
 
 func (w *Simulator) Release() {
-	if !watcher.Enable() {
-		return
-	}
+	//if !watcher.Enable() {
+	//	return
+	//}
 	proxy.PutBackStorePool(w.ctx.MultiStore().(sdk.CacheMultiStore))
 	w.k.Cleanup()
 }

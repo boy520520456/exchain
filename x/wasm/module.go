@@ -3,7 +3,6 @@ package wasm
 import (
 	"context"
 	"github.com/okex/exchain/app/rpc/simulator"
-	"github.com/okex/exchain/libs/tendermint/global"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
 	"math/rand"
 
@@ -22,7 +21,6 @@ import (
 	"github.com/okex/exchain/x/wasm/keeper"
 	"github.com/okex/exchain/x/wasm/simulation"
 	"github.com/okex/exchain/x/wasm/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 	"github.com/spf13/cobra"
 )
 
@@ -127,15 +125,12 @@ func NewAppModule(cdc codec.CodecProxy, wasmkeeper *Keeper) AppModule {
 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	global.Manager = watcher.ParamsManager{}
+	//global.Manager = watcher.ParamsManager{}
 	simulator.NewWasmSimulator = NewWasmSimulator
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.permissionKeeper))
-	if watcher.Enable() {
-		k := NewProxyKeeper()
-		types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(&k))
-	} else {
-		types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
-	}
+
+	types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
+
 }
 
 func (am AppModule) GetPermissionKeeper() types.ContractOpsKeeper {
@@ -180,7 +175,6 @@ func (AppModule) QuerierRoute() string {
 
 // BeginBlock returns the begin blocker for the wasm module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
-	watcher.NewHeight()
 	if tmtypes.DownloadDelta {
 		keeper.GetWasmParamsCache().SetNeedParamsUpdate()
 		keeper.GetWasmParamsCache().SetNeedBlockedUpdate()

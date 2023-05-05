@@ -7,7 +7,6 @@ import (
 	appconfig "github.com/okex/exchain/app/config"
 	"github.com/okex/exchain/libs/system/trace"
 	abci "github.com/okex/exchain/libs/tendermint/abci/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 )
 
 // BeginBlock implements the Application interface
@@ -75,7 +74,6 @@ func (app *OKExChainApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 	// 2. before commit the block,State#updateToState hasent not called yet,so the proposalBlockPart is not nil which means we wont
 	// 	  call the prerun during commit step(edge case)
 	app.EvmKeeper.Watcher.Commit()
-	watcher.Commit()
 
 	return res
 }

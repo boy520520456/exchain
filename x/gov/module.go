@@ -16,7 +16,6 @@ import (
 	"github.com/okex/exchain/x/gov/client/rest"
 	"github.com/okex/exchain/x/gov/keeper"
 	"github.com/okex/exchain/x/gov/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 	"github.com/spf13/cobra"
 )
 
@@ -150,9 +149,6 @@ func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // EndBlock implements module end-block
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	EndBlocker(ctx, am.keeper)
-	if watcher.Enable() {
-		watcher.Save(nil)
-	}
 
 	return []abci.ValidatorUpdate{}
 }

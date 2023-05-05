@@ -19,7 +19,6 @@ import (
 	paramtypes "github.com/okex/exchain/x/params"
 	"github.com/okex/exchain/x/wasm/ioutils"
 	"github.com/okex/exchain/x/wasm/types"
-	"github.com/okex/exchain/x/wasm/watcher"
 	"math"
 	"path/filepath"
 	"strconv"
@@ -91,7 +90,6 @@ type Keeper struct {
 type defaultAdapter struct{}
 
 func (d defaultAdapter) NewStore(_ sdk.GasMeter, store sdk.KVStore, pre []byte) sdk.KVStore {
-	store = watcher.WrapWriteKVStore(store)
 	if len(pre) != 0 {
 		store = prefix.NewStore(store, pre)
 	}
@@ -122,7 +120,6 @@ func NewKeeper(
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
-	watcher.SetWatchDataManager()
 	k := newKeeper(cdc, storeKey, paramSpace, accountKeeper, bankKeeper, channelKeeper, portKeeper, capabilityKeeper, portSource, router, queryRouter, homeDir, wasmConfig, supportedFeatures, defaultAdapter{}, opts...)
 	accountKeeper.SetObserverKeeper(k)
 
@@ -146,7 +143,7 @@ func NewSimulateKeeper(
 	supportedFeatures string,
 	opts ...Option,
 ) Keeper {
-	return newKeeper(cdc, storeKey, paramSpace, accountKeeper, bankKeeper, channelKeeper, portKeeper, capabilityKeeper, portSource, router, queryRouter, homeDir, wasmConfig, supportedFeatures, watcher.Adapter{}, opts...)
+	return newKeeper(cdc, storeKey, paramSpace, accountKeeper, bankKeeper, channelKeeper, portKeeper, capabilityKeeper, portSource, router, queryRouter, homeDir, wasmConfig, supportedFeatures, defaultAdapter{}, opts...)
 }
 
 func newKeeper(cdc *codec.CodecProxy,
@@ -340,13 +337,11 @@ func (k Keeper) SetGasFactor(ctx sdk.Context, factor uint64) {
 }
 
 func (k Keeper) SetParams(ctx sdk.Context, ps types.Params) {
-	watcher.SetParams(ps)
 	k.paramSpace.SetParamSet(ctx, &ps)
 	GetWasmParamsCache().SetNeedParamsUpdate()
 }
 
 func (k Keeper) OnAccountUpdated(acc exported.Account) {
-	watcher.DeleteAccount(sdk.AccToAWasmddress(acc.GetAddress()))
 }
 
 func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte, instantiateAccess *types.AccessConfig, authZ AuthorizationPolicy) (codeID uint64, err error) {
