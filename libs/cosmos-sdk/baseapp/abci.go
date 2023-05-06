@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/okex/exchain/app/rpc/simulator"
 	"github.com/okex/exchain/libs/cosmos-sdk/codec"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/mpt"
 	"github.com/okex/exchain/libs/cosmos-sdk/types"
@@ -472,36 +471,6 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 		GasInfo: gInfo,
 		Result:  res,
 	}, shouldAddBuffer, nil
-}
-
-func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg) (simRes sdk.SimulationResponse, err error) {
-	wasmSimulator := simulator.NewWasmSimulator()
-	defer wasmSimulator.Release()
-	defer func() {
-		if r := recover(); r != nil {
-			gasMeter := wasmSimulator.Context().GasMeter()
-			simRes = sdk.SimulationResponse{
-				GasInfo: sdk.GasInfo{
-					GasUsed: gasMeter.GasConsumed(),
-				},
-			}
-		}
-	}()
-
-	wasmSimulator.Context().GasMeter().ConsumeGas(73000, "general ante check cost")
-	wasmSimulator.Context().GasMeter().ConsumeGas(uint64(10*len(txBytes)), "tx size cost")
-	res, err := wasmSimulator.Simulate(msgs)
-	if err != nil {
-		return sdk.SimulationResponse{}, sdkerrors.Wrap(err, "failed to simulate wasm tx")
-	}
-
-	gasMeter := wasmSimulator.Context().GasMeter()
-	return sdk.SimulationResponse{
-		GasInfo: sdk.GasInfo{
-			GasUsed: gasMeter.GasConsumed(),
-		},
-		Result: res,
-	}, nil
 }
 
 func handleQueryApp(app *BaseApp, path []string, req abci.RequestQuery) abci.ResponseQuery {

@@ -9,5 +9,3 @@ type Simulator interface {
 	Context() *sdk.Context
 	Release()
 }
-
-var NewWasmSimulator func() Simulator

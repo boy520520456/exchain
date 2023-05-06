@@ -126,26 +126,6 @@ func NewKeeper(
 	return k
 }
 
-func NewSimulateKeeper(
-	cdc *codec.CodecProxy,
-	storeKey sdk.StoreKey,
-	paramSpace types.Subspace,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper,
-	capabilityKeeper types.CapabilityKeeper,
-	portSource types.ICS20TransferPortSource,
-	router MessageRouter,
-	queryRouter GRPCQueryRouter,
-	homeDir string,
-	wasmConfig types.WasmConfig,
-	supportedFeatures string,
-	opts ...Option,
-) Keeper {
-	return newKeeper(cdc, storeKey, paramSpace, accountKeeper, bankKeeper, channelKeeper, portKeeper, capabilityKeeper, portSource, router, queryRouter, homeDir, wasmConfig, supportedFeatures, defaultAdapter{}, opts...)
-}
-
 func newKeeper(cdc *codec.CodecProxy,
 	storeKey sdk.StoreKey,
 	paramSpace types.Subspace,

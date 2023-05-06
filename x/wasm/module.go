@@ -2,7 +2,6 @@ package wasm
 
 import (
 	"context"
-	"github.com/okex/exchain/app/rpc/simulator"
 	tmtypes "github.com/okex/exchain/libs/tendermint/types"
 	"math/rand"
 
@@ -125,10 +124,7 @@ func NewAppModule(cdc codec.CodecProxy, wasmkeeper *Keeper) AppModule {
 }
 
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	//global.Manager = watcher.ParamsManager{}
-	simulator.NewWasmSimulator = NewWasmSimulator
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.permissionKeeper))
-
 	types.RegisterQueryServer(cfg.QueryServer(), NewQuerier(am.keeper))
 
 }
