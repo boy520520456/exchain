@@ -2,8 +2,6 @@ package cachekv
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
 	"io"
 	"reflect"
 	"sort"
@@ -68,7 +66,7 @@ func (store *Store) GetStoreType() types.StoreType {
 
 // Implements types.KVStore.
 func (store *Store) Get(key []byte) (value []byte) {
-	fmt.Println("fffff", hex.EncodeToString(key), reflect.TypeOf(store.parent))
+	//fmt.Println("fffff", hex.EncodeToString(key), reflect.TypeOf(store.parent))
 	store.mtx.Lock()
 	defer store.mtx.Unlock()
 
