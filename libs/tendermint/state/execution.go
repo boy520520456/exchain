@@ -326,7 +326,6 @@ func (blockExec *BlockExecutor) ApplyBlock(
 			}
 		}
 	}
-	fmt.Println("fuck--", block.Height, block.AppHash.String())
 
 	return state, retainHeight, nil
 }

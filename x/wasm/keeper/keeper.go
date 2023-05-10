@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	wasmvm "github.com/CosmWasm/wasmvm"
@@ -406,7 +405,6 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 func (k Keeper) storeCodeInfo(ctx sdk.Context, codeID uint64, codeInfo types.CodeInfo) {
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 	// 0x01 | codeID (uint64) -> ContractInfo
-	fmt.Println("set code Info", codeID, hex.EncodeToString(types.GetCodeKey(codeID)), hex.EncodeToString(k.cdc.GetProtocMarshal().MustMarshal(&codeInfo)))
 	store.Set(types.GetCodeKey(codeID), k.cdc.GetProtocMarshal().MustMarshal(&codeInfo))
 }
 
@@ -459,9 +457,7 @@ func (k Keeper) instantiate(ctx sdk.Context, codeID uint64, creator, admin sdk.W
 
 	// get contact info
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
-	fmt.Println("get code id ")
 	codeInfo := k.GetCodeInfo(ctx, codeID)
-	fmt.Println("get code id ", codeInfo == nil)
 	if codeInfo == nil {
 		return nil, nil, sdkerrors.Wrap(types.ErrNotFound, "code")
 	}
