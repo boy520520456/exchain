@@ -33,22 +33,21 @@ pub fn execute(
 }
 
 pub fn try_add(deps: DepsMut,delta:i32) -> Result<Response, ContractError> {
-
-    COUNTER_VALUE.save(deps.storage,delta,&delta)?; // save
-
-    let _info=COUNTER_VALUE.may_load(deps.storage, delta)?; // read
-
-    let a=delta+delta;
-    COUNTER_VALUE.save(deps.storage,delta,&a)?; // reset
+    if delta==1{
+        COUNTER_VALUE.save(deps.storage,delta,&delta)?; // save
+        let a=delta+delta;
+        COUNTER_VALUE.save(deps.storage,delta,&a)?; // reset
 
 
-    COUNTER_VALUE.remove(deps.storage,delta); // delete
+        COUNTER_VALUE.remove(deps.storage,delta); // delete
+        COUNTER_VALUE.may_load(deps.storage, delta)?; // read
+        COUNTER_VALUE.save(deps.storage,delta,&delta)?; // reset
 
+        let _info=COUNTER_VALUE.may_load(deps.storage, 5)?; // read
+    }else{
+        COUNTER_VALUE.may_load(deps.storage, 1)?; // read
+    }
 
-    COUNTER_VALUE.may_load(deps.storage, delta)?; // read
-
-
-    COUNTER_VALUE.save(deps.storage,delta,&delta)?; // reset
 
 
     Ok(Response::new().add_attribute("Added", "123"))
