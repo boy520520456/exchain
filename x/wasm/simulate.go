@@ -1,6 +1,7 @@
 package wasm
 
 import (
+	"fmt"
 	"github.com/okex/exchain/app/rpc/simulator"
 	"github.com/okex/exchain/libs/cosmos-sdk/baseapp"
 	"github.com/okex/exchain/libs/cosmos-sdk/codec"
@@ -38,6 +39,7 @@ func (w *Simulator) Simulate(msgs []sdk.Msg) (*sdk.Result, error) {
 
 	for _, msg := range msgs {
 		w.ctx.ResetWasmKvStoreForSimulate()
+		fmt.Println("SSSSSSSSSSS", w.ctx.WasmKvStoreForSimulate() == nil)
 		res, err := w.handler(w.ctx, msg)
 		if err != nil {
 			return nil, err
