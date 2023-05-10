@@ -107,6 +107,9 @@ func (c *Context) Cache() *Cache {
 func (c *Context) WasmKvStoreForSimulate() KVStore {
 	return *c.wasmKvStoreForSimulate
 }
+func (c *Context) ResetWasmKvStoreForSimulate() {
+	c.wasmKvStoreForSimulate = nil
+}
 func (c Context) ParaMsg() *ParaMsg {
 	return c.paraMsg
 }
@@ -211,7 +214,7 @@ func NewContext(ms MultiStore, header abci.Header, isCheckTx bool, logger log.Lo
 		minGasPrice:            DecCoins{},
 		eventManager:           NewEventManager(),
 		watcher:                &TxWatcher{EmptyWatcher{}},
-		wasmKvStoreForSimulate: &nilKvStore,
+		wasmKvStoreForSimulate: nil,
 	}
 }
 
