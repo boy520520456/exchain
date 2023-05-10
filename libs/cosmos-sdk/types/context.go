@@ -108,7 +108,7 @@ func (c *Context) WasmKvStoreForSimulate() KVStore {
 	return *c.wasmKvStoreForSimulate
 }
 func (c *Context) ResetWasmKvStoreForSimulate() {
-	c.wasmKvStoreForSimulate = nil
+	c.wasmKvStoreForSimulate = &nilKvStore
 }
 func (c Context) ParaMsg() *ParaMsg {
 	return c.paraMsg
@@ -204,17 +204,16 @@ func NewContext(ms MultiStore, header abci.Header, isCheckTx bool, logger log.Lo
 	// https://github.com/gogo/protobuf/issues/519
 	header.Time = header.Time.UTC()
 	return Context{
-		ctx:                    context.Background(),
-		ms:                     ms,
-		header:                 &header,
-		chainID:                header.ChainID,
-		checkTx:                isCheckTx,
-		logger:                 logger,
-		gasMeter:               stypes.NewInfiniteGasMeter(),
-		minGasPrice:            DecCoins{},
-		eventManager:           NewEventManager(),
-		watcher:                &TxWatcher{EmptyWatcher{}},
-		wasmKvStoreForSimulate: nil,
+		ctx:          context.Background(),
+		ms:           ms,
+		header:       &header,
+		chainID:      header.ChainID,
+		checkTx:      isCheckTx,
+		logger:       logger,
+		gasMeter:     stypes.NewInfiniteGasMeter(),
+		minGasPrice:  DecCoins{},
+		eventManager: NewEventManager(),
+		watcher:      &TxWatcher{EmptyWatcher{}},
 	}
 }
 
