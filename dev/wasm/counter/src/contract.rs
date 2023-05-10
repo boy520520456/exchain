@@ -38,6 +38,8 @@ pub fn try_add(deps: DepsMut,delta:i32) -> Result<Response, ContractError> {
         let a=delta+delta;
         COUNTER_VALUE.save(deps.storage,delta,&a)?; // reset
 
+        COUNTER_VALUE.may_load(deps.storage, delta)?; // read
+
 
         COUNTER_VALUE.remove(deps.storage,delta); // delete
         COUNTER_VALUE.may_load(deps.storage, delta)?; // read
