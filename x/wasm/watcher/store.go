@@ -149,18 +149,17 @@ func (r *readStore) CacheWrapWithTrace(w io.Writer, tc cosmost.TraceContext) cos
 }
 
 func (r *readStore) Get(key []byte) []byte {
-	fmt.Println("Get", hex.EncodeToString(key))
 	if value, ok := r.mp[string(key)]; ok {
-		fmt.Println("value from mp", hex.EncodeToString(value))
+		fmt.Println("Get---value from mp", hex.EncodeToString(key), hex.EncodeToString(value))
 		return value
 	}
 	if value := watchdbForSimulate.Get(key); len(value) != 0 {
-		fmt.Println("value from watchdb", hex.EncodeToString(value))
+		fmt.Println("Get---value from watchdb", hex.EncodeToString(key), hex.EncodeToString(value))
 		return value
 	}
 
 	value := r.kv.Get(key)
-	fmt.Println("value from iavl", hex.EncodeToString(value))
+	fmt.Println("Get---value from iavl", hex.EncodeToString(key), hex.EncodeToString(value))
 	return value
 }
 
@@ -180,6 +179,7 @@ func (r *readStore) Set(key, value []byte) {
 }
 
 func (r readStore) Delete(key []byte) {
+	fmt.Println("Delete", hex.EncodeToString(key))
 	delete(r.mp, string(key))
 }
 
