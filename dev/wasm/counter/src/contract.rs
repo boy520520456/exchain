@@ -49,6 +49,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 fn query_count(deps: Deps,delta:i32) -> StdResult<i32> {
-    let info = COUNTER_VALUE.load(deps.storage,delta)?;
-    Ok(info)
+    if let Some(info) = COUNTER_VALUE.may_load(deps.storage, &delta)? {
+        Ok(info)
+    } else {
+        Ok(0)
+    }
 }
