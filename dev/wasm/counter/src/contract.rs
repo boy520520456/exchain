@@ -45,7 +45,9 @@ pub fn try_add(deps: DepsMut,delta:i32) -> Result<Response, ContractError> {
         COUNTER_VALUE.may_load(deps.storage, delta)?; // read
         COUNTER_VALUE.save(deps.storage,delta,&delta)?; // reset
 
+        let _info=COUNTER_VALUE.may_load(deps.storage, 1)?; // read
         let _info=COUNTER_VALUE.may_load(deps.storage, 5)?; // read
+
     }
     if delta==2{
         COUNTER_VALUE.may_load(deps.storage, 1)?; // read

@@ -150,7 +150,7 @@ func (r *readStore) CacheWrapWithTrace(w io.Writer, tc cosmost.TraceContext) cos
 
 func (r *readStore) Get(key []byte) []byte {
 	if value, ok := r.mp[string(key)]; ok {
-		fmt.Println("Get---value from mp", hex.EncodeToString(key), hex.EncodeToString(value))
+		fmt.Println("Get---value from mp", len(r.mp), hex.EncodeToString(key), hex.EncodeToString(value))
 		return value
 	}
 	if value := watchdbForSimulate.Get(key); len(value) != 0 {
