@@ -9,6 +9,9 @@ exchaincli tx wasm instantiate 1 '{}' ${OPTIONS}
 # 0xbbE4733d85bc2b90682147779DA49caB38C0aA1F
 exchaincli tx wasm execute 0x5A8D648DEE57b2fc90D98DC17fa887159b69638b '{"add":{"delta":2}}'  ${OPTIONS}
 
+echo "111"
 exchaincli query wasm contract-state smart 0x5A8D648DEE57b2fc90D98DC17fa887159b69638b '{"get_counter":{"delta":2}}'
+
+echo "222"
 exchaincli query wasm contract-state smart 0x5A8D648DEE57b2fc90D98DC17fa887159b69638b '{"get_counter":{"delta":1}}'
 
