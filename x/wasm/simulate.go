@@ -25,6 +25,7 @@ func NewWasmSimulator() simulator.Simulator {
 	k := NewProxyKeeper()
 	h := NewHandler(keeper.NewDefaultPermissionKeeper(k))
 	ctx := proxy.MakeContext(k.GetStoreKey())
+	fmt.Println("new---ctx", ctx.WasmKvStoreForSimulate() == nil)
 	return &Simulator{
 		handler: h,
 		k:       &k,
@@ -38,8 +39,9 @@ func (w *Simulator) Simulate(msgs []sdk.Msg) (*sdk.Result, error) {
 	events := sdk.EmptyEvents()
 
 	for _, msg := range msgs {
+		fmt.Println("SSSSSSSSSSS-before", w.ctx.WasmKvStoreForSimulate() == nil)
 		w.ctx.ResetWasmKvStoreForSimulate()
-		fmt.Println("SSSSSSSSSSS", w.ctx.WasmKvStoreForSimulate() == nil)
+		fmt.Println("SSSSSSSSSSS-end", w.ctx.WasmKvStoreForSimulate() == nil)
 		res, err := w.handler(w.ctx, msg)
 		if err != nil {
 			return nil, err
