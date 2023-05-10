@@ -107,9 +107,7 @@ func (c *Context) Cache() *Cache {
 func (c *Context) WasmKvStoreForSimulate() KVStore {
 	return *c.wasmKvStoreForSimulate
 }
-func (c *Context) ResetWasmKvStoreForSimulate() {
-	c.wasmKvStoreForSimulate = &nilKvStore
-}
+
 func (c Context) ParaMsg() *ParaMsg {
 	return c.paraMsg
 }
@@ -415,6 +413,9 @@ func (c *Context) SetWasmKvStoreForSimulate(k KVStore) {
 	*c.wasmKvStoreForSimulate = k
 }
 
+func (c *Context) ResetWasmKvStoreForSimulate() {
+	*c.wasmKvStoreForSimulate = nilKvStore
+}
 func (c *Context) GetWatcher() IWatcher {
 	if c.watcher == nil {
 		return emptyWatcher
