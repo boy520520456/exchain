@@ -202,16 +202,17 @@ func NewContext(ms MultiStore, header abci.Header, isCheckTx bool, logger log.Lo
 	// https://github.com/gogo/protobuf/issues/519
 	header.Time = header.Time.UTC()
 	return Context{
-		ctx:          context.Background(),
-		ms:           ms,
-		header:       &header,
-		chainID:      header.ChainID,
-		checkTx:      isCheckTx,
-		logger:       logger,
-		gasMeter:     stypes.NewInfiniteGasMeter(),
-		minGasPrice:  DecCoins{},
-		eventManager: NewEventManager(),
-		watcher:      &TxWatcher{EmptyWatcher{}},
+		ctx:                    context.Background(),
+		ms:                     ms,
+		header:                 &header,
+		chainID:                header.ChainID,
+		checkTx:                isCheckTx,
+		logger:                 logger,
+		gasMeter:               stypes.NewInfiniteGasMeter(),
+		minGasPrice:            DecCoins{},
+		eventManager:           NewEventManager(),
+		watcher:                &TxWatcher{EmptyWatcher{}},
+		wasmKvStoreForSimulate: &nilKvStore,
 	}
 }
 
