@@ -326,6 +326,7 @@ func (blockExec *BlockExecutor) ApplyBlock(
 			}
 		}
 	}
+	fmt.Println("fuck--", block.Height, block.AppHash.String())
 
 	return state, retainHeight, nil
 }
@@ -362,7 +363,6 @@ func (blockExec *BlockExecutor) runAbci(block *types.Block, deltaInfo *DeltaInfo
 				db:       blockExec.db,
 				proxyApp: blockExec.proxyApp,
 			}
-			fmt.Println("AAAAAAAA", block.Height, block.AppHash.String())
 			mode := DeliverTxsExecMode(cfg.DynamicConfig.GetDeliverTxsExecuteMode())
 			switch mode {
 			case DeliverTxsExecModeSerial:
