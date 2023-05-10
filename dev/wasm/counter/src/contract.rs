@@ -50,9 +50,7 @@ pub fn try_add(deps: DepsMut,delta:i32) -> Result<Response, ContractError> {
     if delta==2{
         COUNTER_VALUE.may_load(deps.storage, 1)?; // read
     }
-    if delta==3{
-        COUNTER_VALUE.remove(deps.storage,1); // delete
-    }
+
 
 
 
