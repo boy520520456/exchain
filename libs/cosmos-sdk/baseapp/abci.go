@@ -229,8 +229,12 @@ func (app *BaseApp) EndBlock(req abci.RequestEndBlock) (res abci.ResponseEndBloc
 		res = app.endBlocker(app.deliverState.ctx, req)
 	}
 	if app.deliverState.ms != nil {
+
 		app.deliverState.ms.IteratorCache(true, func(key string, value []byte, isDirty bool, isDelete bool, storeKey cosmost.StoreKey) bool {
-			fmt.Println("dirty", hex.EncodeToString([]byte(key)), hex.EncodeToString(value))
+			if hex.EncodeToString([]byte(key)) == "010000000000000001" {
+				fmt.Println("dirty", hex.EncodeToString([]byte(key)), hex.EncodeToString(value))
+			}
+
 			return true
 		}, nil)
 	}
