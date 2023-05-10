@@ -153,10 +153,10 @@ func (r *readStore) Get(key []byte) []byte {
 		fmt.Println("Get---value from mp", len(r.mp), hex.EncodeToString(key), hex.EncodeToString(value))
 		return value
 	}
-	if value := watchdbForSimulate.Get(key); len(value) != 0 {
-		fmt.Println("Get---value from watchdb", hex.EncodeToString(key), hex.EncodeToString(value))
-		return value
-	}
+	//if value := watchdbForSimulate.Get(key); len(value) != 0 {
+	//	fmt.Println("Get---value from watchdb", hex.EncodeToString(key), hex.EncodeToString(value))
+	//	return value
+	//}
 
 	value := r.kv.Get(key)
 	fmt.Println("Get---value from iavl", hex.EncodeToString(key), hex.EncodeToString(value))
