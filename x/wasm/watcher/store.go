@@ -1,7 +1,9 @@
 package watcher
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/dbadapter"
 	cosmost "github.com/okex/exchain/libs/cosmos-sdk/store/types"
 	"io"
@@ -123,6 +125,7 @@ func (a Adapter) NewStore(ctx sdk.Context, storeKey sdk.StoreKey, pre []byte) sd
 	if ctx.WasmKvStoreForSimulate() != nil {
 		return ctx.WasmKvStoreForSimulate()
 	}
+	fmt.Println("new store ----- ---")
 	s := NewReadStore(pre, ctx.KVStore(storeKey))
 	ctx.SetWasmKvStoreForSimulate(s)
 	return s
@@ -146,23 +149,33 @@ func (r *readStore) CacheWrapWithTrace(w io.Writer, tc cosmost.TraceContext) cos
 }
 
 func (r *readStore) Get(key []byte) []byte {
+	fmt.Println("Get", hex.EncodeToString(key))
 	if value, ok := r.mp[string(key)]; ok {
+		fmt.Println("value from mp", hex.EncodeToString(value))
 		return value
 	}
 	if value := watchdbForSimulate.Get(key); len(value) != 0 {
+		fmt.Println("value from watchdb", hex.EncodeToString(value))
 		return value
 	}
-	return r.kv.Get(key)
+
+	value := r.kv.Get(key)
+	fmt.Println("value from iavl", hex.EncodeToString(value))
+	return value
 }
 
 func (r *readStore) Has(key []byte) bool {
 	if _, ok := r.mp[string(key)]; ok {
 		return ok
 	}
+	if has := watchdbForSimulate.Has(key); has {
+		return has
+	}
 	return r.kv.Has(key)
 }
 
 func (r *readStore) Set(key, value []byte) {
+	fmt.Println("Set--", hex.EncodeToString(key), hex.EncodeToString(value))
 	r.mp[string(key)] = value
 }
 
