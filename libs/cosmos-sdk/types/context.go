@@ -437,8 +437,8 @@ func (c *Context) GetWatcher() IWatcher {
 
 // KVStore fetches a KVStore from the MultiStore.
 func (c *Context) KVStore(key StoreKey) KVStore {
-	fmt.Println("kvstore", c.gasMeter)
-	fmt.Println("kvstore", c.MultiStore().GetKVStore(key))
+	fmt.Println("kvstore-1", key.String(), c.gasMeter == nil)
+	fmt.Println("kvstore-2", key.String(), c.MultiStore().GetKVStore(key) == nil)
 	return gaskv.NewStore(c.MultiStore().GetKVStore(key), c.GasMeter(), stypes.KVGasConfig())
 }
 
