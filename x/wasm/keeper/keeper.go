@@ -374,12 +374,13 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
 	ctx.GasMeter().ConsumeGas(k.gasRegister.CompileCosts(len(wasmCode)), "Compiling WASM Bytecode")
-
+	fmt.Println("create-2-1")
 	checksum, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
 	report, err := k.wasmVM.AnalyzeCode(checksum)
+	fmt.Println("create-2-2")
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
@@ -389,6 +390,7 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
+	fmt.Println("create-2-3")
 	codeInfo := types.NewCodeInfo(checksum, creator, result)
 	k.storeCodeInfo(ctx, codeID, codeInfo)
 	fmt.Println("create-3")
