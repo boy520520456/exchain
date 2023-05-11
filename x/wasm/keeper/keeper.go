@@ -352,6 +352,7 @@ func (k Keeper) OnAccountUpdated(acc exported.Account) {
 }
 
 func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte, instantiateAccess *types.AccessConfig, authZ AuthorizationPolicy) (codeID uint64, err error) {
+	fmt.Println("create-1")
 	if creator == nil {
 		return 0, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "cannot be nil")
 	}
@@ -367,7 +368,7 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		// we enforce this must be subset of default upload access
 		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "instantiate access must be subset of default upload access")
 	}
-
+	fmt.Println("create-2")
 	wasmCode, err = ioutils.Uncompress(wasmCode, uint64(types.MaxWasmSize))
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
@@ -390,7 +391,7 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 	}
 	codeInfo := types.NewCodeInfo(checksum, creator, result)
 	k.storeCodeInfo(ctx, codeID, codeInfo)
-
+	fmt.Println("create-3")
 	evt := sdk.NewEvent(
 		types.EventTypeStoreCode,
 		sdk.NewAttribute(types.AttributeKeyCodeID, strconv.FormatUint(codeID, 10)),
@@ -399,7 +400,7 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		evt.AppendAttributes(sdk.NewAttribute(types.AttributeKeyFeature, strings.TrimSpace(f)))
 	}
 	ctx.EventManager().EmitEvent(evt)
-
+	fmt.Println("create-4")
 	return codeID, nil
 }
 
