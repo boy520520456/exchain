@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -437,8 +436,8 @@ func (c *Context) GetWatcher() IWatcher {
 
 // KVStore fetches a KVStore from the MultiStore.
 func (c *Context) KVStore(key StoreKey) KVStore {
-	fmt.Println("kvstore-1", key.String(), c.gasMeter == nil)
-	fmt.Println("kvstore-2", key.String(), c.MultiStore().GetKVStore(key) == nil)
+	//fmt.Println("kvstore-1", key.String(), c.gasMeter == nil)
+	//fmt.Println("kvstore-2", key.String(), c.MultiStore().GetKVStore(key) == nil)
 	//fmt.Println("kvstore-3", key.String())
 
 	return gaskv.NewStore(c.MultiStore().GetKVStore(key), c.GasMeter(), stypes.KVGasConfig())
