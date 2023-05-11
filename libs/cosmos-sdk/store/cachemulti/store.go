@@ -250,6 +250,9 @@ func (cms Store) GetKVStore(key types.StoreKey) types.KVStore {
 	store := cms.stores[key]
 	if key == nil || store == nil {
 		fmt.Println("hhhhhhh", key == nil, store == nil, len(cms.stores))
+		for k, _ := range cms.stores {
+			fmt.Println("---", k.String())
+		}
 		panic(fmt.Sprintf("kv store with key %v has not been registered in stores", key))
 	}
 
