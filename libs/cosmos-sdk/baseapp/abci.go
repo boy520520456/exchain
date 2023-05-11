@@ -476,7 +476,7 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 			}
 		}
 		if isPureWasm {
-			ms := app.checkState.CacheMultiStore()
+			ms := app.checkState.ms.CacheMultiStore()
 			res, err := handleSimulateWasm(height, txBytes, msgs, ms)
 			return res, shouldAddBuffer, err
 		}
