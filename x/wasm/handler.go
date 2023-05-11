@@ -39,10 +39,13 @@ func NewHandler(k types.ContractOpsKeeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 		case *MsgStoreCode: //nolint:typecheck
+			fmt.Println("storecode", ctx.IsDeliver())
 			res, err = msgServer.StoreCode(sdk.WrapSDKContext(ctx), msg)
 		case *MsgInstantiateContract:
+			fmt.Println("MsgInstantiateContract", ctx.IsDeliver())
 			res, err = msgServer.InstantiateContract(sdk.WrapSDKContext(ctx), msg)
 		case *MsgExecuteContract:
+			fmt.Println("ExecuteContract", ctx.IsDeliver())
 			res, err = msgServer.ExecuteContract(sdk.WrapSDKContext(ctx), msg)
 		case *MsgMigrateContract:
 			res, err = msgServer.MigrateContract(sdk.WrapSDKContext(ctx), msg)
