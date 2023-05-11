@@ -5,7 +5,7 @@ import (
 )
 
 type Simulator interface {
-	Simulate([]sdk.Msg, sdk.CacheMultiStore) (*sdk.Result, error)
+	Simulate([]sdk.Msg, sdk.Context) (*sdk.Result, error)
 	Context() *sdk.Context
 	Release()
 }

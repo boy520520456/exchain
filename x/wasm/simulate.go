@@ -32,16 +32,15 @@ func NewWasmSimulator() simulator.Simulator {
 	}
 }
 
-func (w *Simulator) Simulate(msgs []sdk.Msg, ms sdk.CacheMultiStore) (*sdk.Result, error) {
+func (w *Simulator) Simulate(msgs []sdk.Msg, ctx sdk.Context) (*sdk.Result, error) {
 	//wasm Result has no Logs
 	data := make([]byte, 0, len(msgs))
 	events := sdk.EmptyEvents()
 
 	for _, msg := range msgs {
 		w.ctx.ResetWasmKvStoreForSimulate()
-		w.ctx.SetMultiStore(ms)
 		fmt.Println("fffff")
-		res, err := w.handler(w.ctx, msg)
+		res, err := w.handler(ctx, msg)
 		if err != nil {
 			return nil, err
 		}
