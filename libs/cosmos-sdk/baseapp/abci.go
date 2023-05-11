@@ -476,8 +476,7 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 			}
 		}
 		if isPureWasm {
-			new_ctx, _ := app.checkState.ctx.CacheContext()
-			res, err := handleSimulateWasm(height, txBytes, msgs, new_ctx)
+			res, err := handleSimulateWasm(height, txBytes, msgs, app.checkState.ms.CacheMultiStore())
 			return res, shouldAddBuffer, err
 		}
 	}
@@ -492,7 +491,7 @@ func handleSimulate(app *BaseApp, path []string, height int64, txBytes []byte, o
 	}, shouldAddBuffer, nil
 }
 
-func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg, newCtx sdk.Context) (simRes sdk.SimulationResponse, err error) {
+func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg, ms sdk.CacheMultiStore) (simRes sdk.SimulationResponse, err error) {
 	wasmSimulator := simulator.NewWasmSimulator()
 	defer wasmSimulator.Release()
 	defer func() {
@@ -508,7 +507,7 @@ func handleSimulateWasm(height int64, txBytes []byte, msgs []sdk.Msg, newCtx sdk
 
 	wasmSimulator.Context().GasMeter().ConsumeGas(73000, "general ante check cost")
 	wasmSimulator.Context().GasMeter().ConsumeGas(uint64(10*len(txBytes)), "tx size cost")
-	res, err := wasmSimulator.Simulate(msgs, newCtx)
+	res, err := wasmSimulator.Simulate(msgs, ms)
 	if err != nil {
 		return sdk.SimulationResponse{}, sdkerrors.Wrap(err, "failed to simulate wasm tx")
 	}
