@@ -374,13 +374,11 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
 	ctx.GasMeter().ConsumeGas(k.gasRegister.CompileCosts(len(wasmCode)), "Compiling WASM Bytecode")
-	fmt.Println("create-2-1")
 	checksum, err := k.wasmVM.Create(wasmCode)
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
 	report, err := k.wasmVM.AnalyzeCode(checksum)
-	fmt.Println("create-2-2")
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
@@ -390,7 +388,6 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
 	}
-	fmt.Println("create-2-3")
 	codeInfo := types.NewCodeInfo(checksum, creator, result)
 	k.storeCodeInfo(ctx, codeID, codeInfo)
 	fmt.Println("create-3")
@@ -402,7 +399,6 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		evt.AppendAttributes(sdk.NewAttribute(types.AttributeKeyFeature, strings.TrimSpace(f)))
 	}
 	ctx.EventManager().EmitEvent(evt)
-	fmt.Println("create-4")
 	return codeID, nil
 }
 
@@ -1192,7 +1188,9 @@ func BuildContractAddress(codeID, instanceID uint64) sdk.WasmAddress {
 func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 
+	fmt.Println("before get lastIDKey")
 	bz := store.Get(lastIDKey)
+	fmt.Println("end get lastIDKEy")
 	id := uint64(1)
 	if bz != nil {
 		id = binary.BigEndian.Uint64(bz)
