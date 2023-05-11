@@ -1186,6 +1186,7 @@ func BuildContractAddress(codeID, instanceID uint64) sdk.WasmAddress {
 }
 
 func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
+	fmt.Println("befro new store")
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 
 	fmt.Println("before get lastIDKey")
