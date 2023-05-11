@@ -127,6 +127,7 @@ func (a Adapter) NewStore(ctx sdk.Context, storeKey sdk.StoreKey, pre []byte) sd
 	}
 	fmt.Println("new store ----- ---")
 	s := NewReadStore(pre, ctx.KVStore(storeKey))
+	fmt.Println("new store- -- end")
 	ctx.SetWasmKvStoreForSimulate(s)
 	return s
 }
