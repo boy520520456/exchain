@@ -1,7 +1,6 @@
 package wasm
 
 import (
-	"fmt"
 	"github.com/okex/exchain/app/rpc/simulator"
 	"github.com/okex/exchain/libs/cosmos-sdk/baseapp"
 	"github.com/okex/exchain/libs/cosmos-sdk/codec"
@@ -38,7 +37,6 @@ func (w *Simulator) Simulate(msgs []sdk.Msg, ms sdk.CacheMultiStore) (*sdk.Resul
 
 	for _, msg := range msgs {
 		w.ctx.ResetWasmKvStoreForSimulate()
-		fmt.Println("fffff")
 		w.ctx.SetMultiStore(ms)
 		res, err := w.handler(w.ctx, msg)
 		if err != nil {

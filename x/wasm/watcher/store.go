@@ -109,12 +109,10 @@ func DeleteAccount(addr sdk.WasmAddress) {
 }
 
 func NewReadStore(pre []byte, store sdk.KVStore) sdk.KVStore {
-	fmt.Println("fuck-1")
 	rs := &readStore{
 		mp: make(map[string][]byte, 0),
 		kv: store,
 	}
-	fmt.Println("fucl-2")
 	if len(pre) != 0 {
 		return prefix.NewStore(rs, pre)
 	}
@@ -127,11 +125,7 @@ func (a Adapter) NewStore(ctx sdk.Context, storeKey sdk.StoreKey, pre []byte) sd
 	if ctx.WasmKvStoreForSimulate() != nil {
 		return ctx.WasmKvStoreForSimulate()
 	}
-	fmt.Println("new store ----- 123---", ctx.MultiStore() == nil)
-	tt := ctx.KVStore(storeKey)
-	fmt.Println("ttt", tt == nil)
 	s := NewReadStore(pre, ctx.KVStore(storeKey))
-	fmt.Println("new store- -- end")
 	ctx.SetWasmKvStoreForSimulate(s)
 	return s
 }

@@ -22,7 +22,6 @@ import (
 	"github.com/okex/exchain/x/wasm/watcher"
 	"math"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -108,7 +107,7 @@ func NewKeeper(
 	paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	//distKeeper types.DistributionKeeper,
+//distKeeper types.DistributionKeeper,
 	channelKeeper types.ChannelKeeper,
 	portKeeper types.PortKeeper,
 	capabilityKeeper types.CapabilityKeeper,
@@ -126,7 +125,6 @@ func NewKeeper(
 	}
 	watcher.SetWatchDataManager()
 	wasmStorageKey = storeKey
-	fmt.Println("reset---")
 	k := newKeeper(cdc, storeKey, paramSpace, accountKeeper, bankKeeper, channelKeeper, portKeeper, capabilityKeeper, portSource, router, queryRouter, homeDir, wasmConfig, supportedFeatures, defaultAdapter{}, opts...)
 	accountKeeper.SetObserverKeeper(k)
 
@@ -357,7 +355,6 @@ func (k Keeper) OnAccountUpdated(acc exported.Account) {
 }
 
 func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte, instantiateAccess *types.AccessConfig, authZ AuthorizationPolicy) (codeID uint64, err error) {
-	fmt.Println("create-1")
 	if creator == nil {
 		return 0, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "cannot be nil")
 	}
@@ -373,7 +370,6 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 		// we enforce this must be subset of default upload access
 		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "instantiate access must be subset of default upload access")
 	}
-	fmt.Println("create-2")
 	wasmCode, err = ioutils.Uncompress(wasmCode, uint64(types.MaxWasmSize))
 	if err != nil {
 		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
@@ -395,7 +391,6 @@ func (k Keeper) create(ctx sdk.Context, creator sdk.WasmAddress, wasmCode []byte
 	}
 	codeInfo := types.NewCodeInfo(checksum, creator, result)
 	k.storeCodeInfo(ctx, codeID, codeInfo)
-	fmt.Println("create-3")
 	evt := sdk.NewEvent(
 		types.EventTypeStoreCode,
 		sdk.NewAttribute(types.AttributeKeyCodeID, strconv.FormatUint(codeID, 10)),
@@ -992,7 +987,6 @@ func (k Keeper) GetCodeInfo(ctx sdk.Context, codeID uint64) *types.CodeInfo {
 
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 	var codeInfo types.CodeInfo
-	fmt.Println("get code ", codeID, reflect.TypeOf(store))
 	codeInfoBz := store.Get(types.GetCodeKey(codeID))
 	if codeInfoBz == nil {
 		return nil
@@ -1191,12 +1185,9 @@ func BuildContractAddress(codeID, instanceID uint64) sdk.WasmAddress {
 }
 
 func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
-	fmt.Println("befro new store")
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 
-	fmt.Println("before get lastIDKey")
 	bz := store.Get(lastIDKey)
-	fmt.Println("end get lastIDKEy")
 	id := uint64(1)
 	if bz != nil {
 		id = binary.BigEndian.Uint64(bz)
