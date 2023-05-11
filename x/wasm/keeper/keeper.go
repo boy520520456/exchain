@@ -22,6 +22,7 @@ import (
 	"github.com/okex/exchain/x/wasm/watcher"
 	"math"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -987,6 +988,7 @@ func (k Keeper) GetCodeInfo(ctx sdk.Context, codeID uint64) *types.CodeInfo {
 
 	store := k.ada.NewStore(ctx, k.storeKey, nil)
 	var codeInfo types.CodeInfo
+	fmt.Println("get code ", codeID, reflect.TypeOf(store))
 	codeInfoBz := store.Get(types.GetCodeKey(codeID))
 	if codeInfoBz == nil {
 		return nil
