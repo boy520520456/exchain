@@ -117,19 +117,19 @@ func NewReadStore(pre []byte, store sdk.KVStore) sdk.KVStore {
 type Adapter struct{}
 
 func (a Adapter) NewStore(ctx sdk.Context, storeKey sdk.StoreKey, pre []byte) sdk.KVStore {
-	var ans sdk.KVStore
+	var s sdk.KVStore
 	if ctx.WasmKvStoreForSimulate() != nil {
-		ans = ctx.WasmKvStoreForSimulate()
+		s = ctx.WasmKvStoreForSimulate()
 	} else {
-		ans = NewReadStore(pre, ctx.KVStore(storeKey))
-		ctx.SetWasmKvStoreForSimulate(ans)
+		s = NewReadStore(pre, ctx.KVStore(storeKey))
+		ctx.SetWasmKvStoreForSimulate(s)
 	}
 
 	if len(pre) != 0 {
-		ans = prefix.NewStore(ans, pre)
+		s = prefix.NewStore(s, pre)
 	}
 
-	return ans
+	return s
 }
 
 type readStore struct {
