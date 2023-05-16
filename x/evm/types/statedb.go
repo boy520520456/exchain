@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/okex/exchain/libs/system/trace"
 
@@ -907,8 +908,12 @@ func (csdb *CommitStateDB) StorageTrie(addr ethcmn.Address) ethstate.Trie {
 // state (storage) updated. In addition, the state object (account) itself will
 // be written. Finally, the root hash (version) will be returned.
 func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) {
+
+	ts := time.Now()
 	// Finalize any pending changes and merge everything into the tries
 	csdb.IntermediateRoot(deleteEmptyObjects)
+	sdk.AddTs("IntermediateRoot", time.Now().Sub(ts))
+	ts = time.Now()
 
 	// If there was a trie prefetcher operating, it gets aborted and irrevocably
 	// modified after we start retrieving tries. Remove it from the statedb after
@@ -935,7 +940,7 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 	}
 
 	if !tmtypes.HigherThanMars(csdb.ctx.BlockHeight()) {
-		if mpt.TrieWriteAhead {
+		if false {
 			// Commit objects to the trie, measuring the elapsed time
 			codeWriter := csdb.db.TrieDB().DiskDB().NewBatch()
 			usedAddrs := make([][]byte, 0, len(csdb.stateObjectsPending))
@@ -990,7 +995,11 @@ func (csdb *CommitStateDB) Commit(deleteEmptyObjects bool) (ethcmn.Hash, error) 
 
 		return ethcmn.Hash{}, nil
 	} else {
-		return csdb.CommitMpt(prefetcher)
+		sdk.AddTs("beforeCommitMpt", time.Now().Sub(ts))
+		ts = time.Now()
+		ans, err := csdb.CommitMpt(prefetcher)
+		sdk.AddTs("CommitMpt", time.Now().Sub(ts))
+		return ans, err
 	}
 }
 
@@ -1290,8 +1299,8 @@ func (csdb *CommitStateDB) Prepare(thash, bhash ethcmn.Hash, txi int) {
 // CreateAccount is called during the EVM CREATE operation. The situation might
 // arise that a contract does the following:
 //
-//   1. sends funds to sha(account ++ (nonce + 1))
-//   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
+//  1. sends funds to sha(account ++ (nonce + 1))
+//  2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
 // Carrying over the balance ensures that Ether doesn't disappear.
 func (csdb *CommitStateDB) CreateAccount(addr ethcmn.Address) {

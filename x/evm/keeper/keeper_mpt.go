@@ -3,10 +3,10 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	"time"
 
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/mpt"
 	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
 	"github.com/okex/exchain/libs/tendermint/libs/log"
@@ -138,6 +138,10 @@ func (k *Keeper) PushData2Database(height int64, log log.Logger) {
 	defer k.cmLock.Unlock()
 
 	curMptRoot := k.GetMptRootHash(uint64(height))
+	ts := time.Now()
+	defer func() {
+		fmt.Println("ppppppp ", mpt.TrieDirtyDisabled, time.Now().Sub(ts).Seconds())
+	}()
 	if mpt.TrieDirtyDisabled {
 		// If we're running an archive node, always flush
 		k.fullNodePersist(curMptRoot, height, log)
@@ -162,30 +166,32 @@ func (k *Keeper) fullNodePersist(curMptRoot ethcmn.Hash, curHeight int64, log lo
 
 // otherNodePersist persist data with pruning
 func (k *Keeper) otherNodePersist(curMptRoot ethcmn.Hash, curHeight int64, log log.Logger) {
+	ts := time.Now()
 	triedb := k.db.TrieDB()
 
 	// Full but not archive node, do proper garbage collection
 	triedb.Reference(curMptRoot, ethcmn.Hash{}) // metadata reference to keep trie alive
 	k.triegc.Push(curMptRoot, -int64(curHeight))
+	fmt.Println("ooooo-1", time.Now().Sub(ts).Seconds())
 
 	if curHeight > mpt.TriesInMemory {
-		// If we exceeded our memory allowance, flush matured singleton nodes to disk
+		//If we exceeded our memory allowance, flush matured singleton nodes to disk
 		var (
-			nodes, imgs = triedb.Size()
-			nodesLimit  = ethcmn.StorageSize(mpt.TrieNodesLimit) * 1024 * 1024
-			imgsLimit   = ethcmn.StorageSize(mpt.TrieImgsLimit) * 1024 * 1024
+		//nodes, imgs = triedb.Size()
+		//nodesLimit  = ethcmn.StorageSize(mpt.TrieNodesLimit) * 1024 * 1024
+		//imgsLimit   = ethcmn.StorageSize(mpt.TrieImgsLimit) * 1024 * 1024
 		)
-
-		if nodes > nodesLimit || imgs > imgsLimit {
-			triedb.Cap(nodesLimit - ethdb.IdealBatchSize)
-		}
+		//fmt.Println("ooooo-1.0", time.Now().Sub(ts).Seconds(), nodes.String(), nodesLimit.String(), imgs.String(), imgsLimit, ethdb.IdealBatchSize)
+		//if nodes > nodesLimit || imgs > imgsLimit {
+		//	triedb.Cap(nodesLimit - ethdb.IdealBatchSize)
+		//}
 		// Find the next state trie we need to commit
 		chosen := curHeight - mpt.TriesInMemory
-
+		fmt.Println("ooooo-1.1", time.Now().Sub(ts).Seconds())
 		if chosen <= int64(k.startHeight) {
 			return
 		}
-
+		fmt.Println("ooooo-2", time.Now().Sub(ts).Seconds())
 		if chosen%mpt.TrieCommitGap == 0 {
 			// If the header is missing (canonical chain behind), we're reorging a low
 			// diff sidechain. Suspend committing until this operation is completed.
@@ -202,7 +208,7 @@ func (k *Keeper) otherNodePersist(curMptRoot ethcmn.Hash, curHeight int64, log l
 			k.SetLatestStoredBlockHeight(uint64(chosen))
 			log.Info("async push evm data to db", "block", chosen, "trieHash", chRoot)
 		}
-
+		fmt.Println("ooooo-3", time.Now().Sub(ts).Seconds())
 		// Garbage collect anything below our required write retention
 		for !k.triegc.Empty() {
 			root, number := k.triegc.Pop()
@@ -212,6 +218,7 @@ func (k *Keeper) otherNodePersist(curMptRoot ethcmn.Hash, curHeight int64, log l
 			}
 			triedb.Dereference(root.(ethcmn.Hash))
 		}
+		fmt.Println("ooooo-4", time.Now().Sub(ts).Seconds())
 	}
 }
 

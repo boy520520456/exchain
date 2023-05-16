@@ -3,6 +3,8 @@ package types
 import (
 	"bytes"
 	"fmt"
+	sdk "github.com/okex/exchain/libs/cosmos-sdk/types"
+	"time"
 
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	ethstate "github.com/ethereum/go-ethereum/core/state"
@@ -40,6 +42,10 @@ func (so *stateObject) deepCopyMpt(db *CommitStateDB) *stateObject {
 }
 
 func (so *stateObject) GetCommittedStateMpt(db ethstate.Database, key ethcmn.Hash) ethcmn.Hash {
+	ts := time.Now()
+	defer func() {
+		sdk.AddTs("GetCommittedStateMpt", time.Now().Sub(ts))
+	}()
 	// If the fake storage is set, only lookup the state here(in the debugging mode)
 	if so.fakeStorage != nil {
 		return so.fakeStorage[key]

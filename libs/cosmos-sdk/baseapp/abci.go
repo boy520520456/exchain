@@ -119,6 +119,7 @@ func (app *BaseApp) FilterPeerByID(info string) abci.ResponseQuery {
 
 // BeginBlock implements the ABCI application interface.
 func (app *BaseApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
+	sdk.ClearA()
 	app.blockDataCache.Clear()
 	app.PutCacheMultiStore(nil)
 	if app.cms.TracingEnabled() {
@@ -275,27 +276,34 @@ func (app *BaseApp) addCommitTraceInfo() {
 // against that height and gracefully halt if it matches the latest committed
 // height.
 func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
+	tt := time.Now()
+	defer func() {
+		fmt.Println("Commit------", time.Now().Sub(tt).Seconds())
+	}()
 
 	persist.GetStatistics().Init(trace.PreChange, trace.FlushCache, trace.CommitStores, trace.FlushMeta)
 	defer func() {
 		trace.GetElapsedInfo().AddInfo(trace.PersistDetails, persist.GetStatistics().Format())
 	}()
 	header := app.deliverState.ctx.BlockHeader()
-
-	if app.mptCommitHandler != nil {
-		app.mptCommitHandler(app.deliverState.ctx)
-	}
+	//
+	//if app.mptCommitHandler != nil {
+	//	app.mptCommitHandler(app.deliverState.ctx)
+	//}
 	if mptStore := app.cms.GetCommitKVStore(sdk.NewKVStoreKey(mpt.StoreKey)); mptStore != nil {
 		// notify mptStore to tryUpdateTrie, must call before app.deliverState.ms.Write()
 		mpt.GAccTryUpdateTrieChannel <- struct{}{}
 		<-mpt.GAccTrieUpdatedChannel
 	}
 
+	fmt.Println("Commit-1", time.Now().Sub(tt).Seconds())
 	// Write the DeliverTx state which is cache-wrapped and commit the MultiStore.
 	// The write to the DeliverTx state writes all state transitions to the root
 	// MultiStore (app.cms) so when Commit() is called is persists those values.
 	app.commitBlockCache()
 	app.deliverState.ms.Write()
+
+	fmt.Println("Commit-2", time.Now().Sub(tt).Seconds())
 
 	var input iavl.TreeDeltaMap
 	if tmtypes.DownloadDelta && req.DeltaMap != nil {
@@ -307,7 +315,7 @@ func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 	}
 
 	commitID, output := app.cms.CommitterCommitMap(input) // CommitterCommitMap
-
+	fmt.Println("Commit-3", time.Now().Sub(tt).Seconds())
 	app.addCommitTraceInfo()
 
 	app.cms.ResetCount()
@@ -318,7 +326,7 @@ func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 	// NOTE: This is safe because Tendermint holds a lock on the mempool for
 	// Commit. Use the header from this latest block.
 	app.setCheckState(header)
-
+	fmt.Println("Commit-4", time.Now().Sub(tt).Seconds())
 	app.logger.Debug("deliverState reset by BaseApp.Commit", "height", header.Height)
 	// empty/reset the deliver state
 	app.deliverState = nil
@@ -341,6 +349,9 @@ func (app *BaseApp) Commit(req abci.RequestCommit) abci.ResponseCommit {
 		app.halt()
 	}
 
+	sdk.DisplayA()
+	sdk.ClearA()
+	sdk.DisplayA()
 	return abci.ResponseCommit{
 		Data:     commitID.Hash,
 		DeltaMap: output,

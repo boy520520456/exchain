@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -13,6 +14,38 @@ import (
 	"github.com/okex/exchain/libs/cosmos-sdk/store/gaskv"
 	stypes "github.com/okex/exchain/libs/cosmos-sdk/store/types"
 )
+
+type A struct {
+	mm map[string]time.Duration
+}
+
+func NewA() *A {
+	return &A{
+		mm: make(map[string]time.Duration, 0),
+	}
+}
+
+var (
+	AA = NewA()
+)
+
+func ClearA() {
+	AA.mm = make(map[string]time.Duration, 0)
+}
+
+func AddTs(key string, ts time.Duration) {
+	if _, ok := AA.mm[key]; !ok {
+		AA.mm[key] = time.Duration(0)
+	}
+	AA.mm[key] = AA.mm[key] + ts
+}
+
+func DisplayA() {
+	fmt.Println("size", len(AA.mm))
+	for key, v := range AA.mm {
+		fmt.Println("--", key, v)
+	}
+}
 
 /*
 Context is an immutable object contains all information needed to
