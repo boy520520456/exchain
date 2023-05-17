@@ -239,6 +239,7 @@ func (ms *MptStore) ReverseIterator(start, end []byte) types.Iterator {
 *  implement CommitStore, CommitKVStore
  */
 func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iavl.TreeDelta) {
+	ts := time.Now()
 	ms.version++
 
 	// stop pre round prefetch
@@ -248,8 +249,10 @@ func (ms *MptStore) CommitterCommit(delta *iavl.TreeDelta) (types.CommitID, *iav
 	if err != nil {
 		panic("fail to commit trie data: " + err.Error())
 	}
+	fmt.Println("ffff-1", time.Now().Sub(ts))
 	ms.SetMptRootHash(uint64(ms.version), root)
 	ms.originalRoot = root
+	fmt.Println("ffff-2", time.Now().Sub(ts))
 
 	// TODO: use a thread to push data to database
 	// push data to database
