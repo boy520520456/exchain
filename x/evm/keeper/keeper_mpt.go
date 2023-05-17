@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	"time"
 
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -176,9 +177,11 @@ func (k *Keeper) otherNodePersist(curMptRoot ethcmn.Hash, curHeight int64, log l
 			imgsLimit   = ethcmn.StorageSize(mpt.TrieImgsLimit) * 1024 * 1024
 		)
 
+		ts := time.Now()
 		if nodes > nodesLimit || imgs > imgsLimit {
 			triedb.Cap(nodesLimit - ethdb.IdealBatchSize)
 		}
+		fmt.Println("cap--2", time.Now().Sub(ts).Seconds())
 		// Find the next state trie we need to commit
 		chosen := curHeight - mpt.TriesInMemory
 
