@@ -13,7 +13,6 @@ import (
 	ethstate "github.com/ethereum/go-ethereum/core/state"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/okex/exchain/libs/cosmos-sdk/codec"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/cachekv"
 	"github.com/okex/exchain/libs/cosmos-sdk/store/tracekv"
@@ -339,15 +338,15 @@ func (ms *MptStore) otherNodePersist(curMptRoot ethcmn.Hash, curHeight int64) {
 	if curHeight > TriesInMemory {
 		// If we exceeded our memory allowance, flush matured singleton nodes to disk
 		var (
-			nodes, imgs = triedb.Size()
-			nodesLimit  = ethcmn.StorageSize(TrieNodesLimit) * 1024 * 1024
-			imgsLimit   = ethcmn.StorageSize(TrieImgsLimit) * 1024 * 1024
+		//nodes, imgs = triedb.Size()
+		//nodesLimit  = ethcmn.StorageSize(TrieNodesLimit) * 1024 * 1024
+		//imgsLimit   = ethcmn.StorageSize(TrieImgsLimit) * 1024 * 1024
 		)
 
 		ts := time.Now()
-		if nodes > nodesLimit || imgs > imgsLimit {
-			triedb.Cap(nodesLimit - ethdb.IdealBatchSize)
-		}
+		//if nodes > nodesLimit || imgs > imgsLimit {
+		//	triedb.Cap(nodesLimit - ethdb.IdealBatchSize)
+		//}
 		fmt.Println("cap---1", time.Now().Sub(ts).Seconds())
 		// Find the next state trie we need to commit
 		chosen := curHeight - TriesInMemory
